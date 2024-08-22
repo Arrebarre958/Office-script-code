@@ -1,0 +1,217 @@
+function main(workbook: ExcelScript.Workbook) {
+  let sheet3 = workbook.getWorksheet("Sheet3");
+  // Set range A1:L1 on sheet3
+  sheet3.getRange("A1:L1").setValues([["Product name", "Product number", "Variant", "Variant number", "Collection", "Folder", "Campaign type", "Value", "Start Date Time", "Stop Date Time", "Sale", "News"]]);
+  let selectedSheet = workbook.getActiveWorksheet();
+  // Set height of row(s) at all cells on selectedSheet to 19.8
+  selectedSheet.getRange().getFormat().setRowHeight(19.8);
+  // Add a new table at range A1:CD99999 on selectedSheet
+  let newTable = workbook.addTable(selectedSheet.getRange("A1:CD99999"), true);
+  // Table style applied on table newTable
+  newTable.setPredefinedTableStyle("TableStyleMedium7");
+  let sheet2 = workbook.getWorksheet("Sheet2");
+  // Add a new table at range A1:N99999 on sheet2
+  let newTable_1 = workbook.addTable(sheet2.getRange("A1:N99999"), true);
+  // Table style applied on table newTable_1
+  newTable_1.setPredefinedTableStyle("TableStyleMedium7");
+  // Insert at range D:D on sheet2, move existing cells right
+  sheet2.getRange("D:D").insert(ExcelScript.InsertShiftDirection.right);
+  // Set range D1:D2 on sheet2
+  sheet2.getRange("D1:D2").setFormulasLocal([["Duplication deletion"], ["=A2&C2"]]);
+  // Set fill color to #ffff00 for range D1 on sheet2
+  sheet2.getRange("D1").getFormat().getFill().setColor("#ffff00");
+  // Set font color to "#FF0000" for range D1 on sheet2
+  sheet2.getRange("D1").getFormat().getFont().setColor("#FF0000");
+  // Paste to extended range obtained by extending down from range D2 on sheet2 from extended range obtained by extending down from range D2 on sheet2
+  sheet2.getRange("D2").getExtendedRange(ExcelScript.KeyboardDirection.down).copyFrom(sheet2.getRange("D2").getExtendedRange(ExcelScript.KeyboardDirection.down), ExcelScript.RangeCopyType.values, false, false);
+  // Remove duplicates from table newTable_1
+  newTable_1.getRange().removeDuplicates([3], true);
+  // Delete range D:D on sheet2
+  sheet2.getRange("D:D").delete(ExcelScript.DeleteShiftDirection.left);
+  // Set width of column(s) at range A:A on sheet3 to 12.8
+  sheet3.getRange("A:A").getFormat().setColumnWidth(12.8);
+  // Insert at range C:C on sheet2, move existing cells right
+  sheet2.getRange("C:C").insert(ExcelScript.InsertShiftDirection.right);
+  // Set range C1:C2 on sheet2
+  sheet2.getRange("C1:C2").setFormulasLocal([["Without sizes"], ["=LEFT(B2,11)"]]);
+  // Set fill color to #ffff00 for range C1 on sheet2
+  sheet2.getRange("C1").getFormat().getFill().setColor("#ffff00");
+  // Set font color to "#FF0000" for range C1 on sheet2
+  sheet2.getRange("C1").getFormat().getFont().setColor("#FF0000");
+  // Paste to extended range obtained by extending down from range C2 on sheet2 from extended range obtained by extending down from range C2 on sheet2
+  sheet2.getRange("C2").getExtendedRange(ExcelScript.KeyboardDirection.down).copyFrom(sheet2.getRange("C2").getExtendedRange(ExcelScript.KeyboardDirection.down), ExcelScript.RangeCopyType.values, false, false);
+  // Insert at range C:C on selectedSheet, move existing cells right
+  selectedSheet.getRange("C:C").insert(ExcelScript.InsertShiftDirection.right);
+  // Set range C1:C2 on selectedSheet
+  selectedSheet.getRange("C1:C2").setFormulasLocal([["Without size"], ["=B2&I2"]]);
+  // Set width of column(s) at range C:C on selectedSheet to 14.8
+  selectedSheet.getRange("C:C").getFormat().setColumnWidth(14.8);
+  // Paste to extended range obtained by extending down from range C2 on selectedSheet from extended range obtained by extending down from range C2 on selectedSheet
+  selectedSheet.getRange("C2").getExtendedRange(ExcelScript.KeyboardDirection.down).copyFrom(selectedSheet.getRange("C2").getExtendedRange(ExcelScript.KeyboardDirection.down), ExcelScript.RangeCopyType.values, false, false);
+  // Set range A2 on sheet3
+  sheet3.getRange("A2").setValue("");
+  // Add a new table at range A1:L99999 on sheet3
+  let newTable_3 = workbook.addTable(sheet3.getRange("A1:L99999"), true);
+  // Table style applied on table newTable_3
+  newTable_3.setPredefinedTableStyle("TableStyleMedium7");
+  // Set range A2:G2 on sheet3
+  sheet3.getRange("A2:G2").setFormulasLocal([["=XLOOKUP(Table2[@[Without sizes]],Sheet1!C:C,Sheet1!E:E,\"Not found\")", "=XLOOKUP(Table2[@[Without sizes]],Sheet1!C:C,Sheet1!B:B,\"Not found\")", "=XLOOKUP(Table2[@[Without sizes]],Sheet1!C:C,Sheet1!G:G,\"Not found\")", "=XLOOKUP(Table2[@[Without sizes]],Sheet1!C:C,Sheet1!I:I,\"Not found\")", "=XLOOKUP(Table2[@[Without sizes]],Sheet1!C:C,Sheet1!R:R,\"Not found\")", "=XLOOKUP(Table2[@[Without sizes]],Sheet1!C:C,Sheet1!Q:Q,\"Not found\")", "percentage"]]);
+  // Paste to extended range obtained by extending down from range G3 on sheet3 from table newTable_3 cell in row 0 on column Campaign type
+  sheet3.getRange("G3").getExtendedRange(ExcelScript.KeyboardDirection.down).copyFrom(newTable_3.getColumn("Campaign type").getRangeBetweenHeaderAndTotal().getRow(0), ExcelScript.RangeCopyType.all, false, false);
+  // Paste to table newTable_3 cell in row 0 on column Value from extended range obtained by extending down from range O2 on sheet2
+  newTable_3.getColumn("Value").getRangeBetweenHeaderAndTotal().getRow(0).copyFrom(sheet2.getRange("O2").getExtendedRange(ExcelScript.KeyboardDirection.down), ExcelScript.RangeCopyType.all, false, false);
+  // Set range K2:L2 on sheet3
+  sheet3.getRange("K2:L2").setValues([["Yes", "No"]]);
+  // Paste to extended range obtained by extending right, then down from range K3 on sheet3 from table newTable_3 sub-range with top left corner at row 0 on column Sale
+  sheet3.getRange("K3").getExtendedRange(ExcelScript.KeyboardDirection.right).getExtendedRange(ExcelScript.KeyboardDirection.down).copyFrom(newTable_3.getColumn("Sale").getRangeBetweenHeaderAndTotal().getRow(0).getResizedRange(0, 1), ExcelScript.RangeCopyType.all, false, false);
+  // Paste to extended range obtained by extending right, right, right, then down from range A2 on sheet3 from extended range obtained by extending right, right, right, then down from range A2 on sheet3
+  sheet3.getRange("A2").getExtendedRange(ExcelScript.KeyboardDirection.right).getExtendedRange(ExcelScript.KeyboardDirection.right).getExtendedRange(ExcelScript.KeyboardDirection.right).getExtendedRange(ExcelScript.KeyboardDirection.down).copyFrom(sheet3.getRange("A2").getExtendedRange(ExcelScript.KeyboardDirection.right).getExtendedRange(ExcelScript.KeyboardDirection.right).getExtendedRange(ExcelScript.KeyboardDirection.right).getExtendedRange(ExcelScript.KeyboardDirection.down), ExcelScript.RangeCopyType.values, false, false);
+  // Set width of column(s) at range H:H on sheet3 to 12.3
+  sheet3.getRange("H:H").getFormat().setColumnWidth(12.3);
+  // Replace all "% Discount" with "" on range H:H on sheet3
+  sheet3.getRange("H:H").replaceAll("% Discount", "", { completeMatch: false, matchCase: false });
+  // Replace all "Cycling /" with "" on range F:F on sheet3
+  sheet3.getRange("F:F").replaceAll("Cycling /", "", { completeMatch: false, matchCase: false });
+  // Replace all "Snow /" with "" on range F:F on sheet3
+  sheet3.getRange("F:F").replaceAll("Snow /", "", { completeMatch: false, matchCase: false });
+  // Additional code
+  sheet3.getRange("H:H").getFormat().setColumnWidth(16.8);
+  // Rename worksheet to "Campaign upload ready"
+  sheet3.setName("Campaign upload ready");
+  // Delete worksheet sheet2
+  sheet2.delete();
+  sheet1 = workbook.getWorksheet("Sheet1");
+  // Set width of column(s) at range C:C on sheet1 to 11.2
+  sheet1.getRange("C:C").getFormat().setColumnWidth(11.2);
+  // Delete range C:C on sheet1
+  sheet1.getRange("C:C").delete(ExcelScript.DeleteShiftDirection.left);
+  // Delete range E:E on sheet1
+  sheet1.getRange("E:E").delete(ExcelScript.DeleteShiftDirection.left);
+  // Delete range F:F on sheet1
+  sheet1.getRange("F:F").delete(ExcelScript.DeleteShiftDirection.left);
+  // Delete range G:N on sheet1
+  sheet1.getRange("G:N").delete(ExcelScript.DeleteShiftDirection.left);
+  // Delete range G:G on sheet1
+  sheet1.getRange("G:G").delete(ExcelScript.DeleteShiftDirection.left);
+  // Delete range I2 on sheet1
+  sheet1.getRange("I:I").delete(ExcelScript.DeleteShiftDirection.left);
+  // Set width of column(s) at range G:G on sheet1 to 26.3
+  sheet1.getRange("H:BQ").delete(ExcelScript.DeleteShiftDirection.left);
+  sheet1.getRange("G:G").getFormat().setColumnWidth(26.3);
+
+  selectedSheet = workbook.getActiveWorksheet();
+  // Replace all "Archive / Archive / Mountain bike / Apparel / Women" with "" on range G:G on selectedSheet
+  selectedSheet.getRange("G:G").replaceAll("Archive / Archive / Mountain bike / Apparel / Women", "", { completeMatch: false, matchCase: false });
+  // Replace all "Archive / Archive / Mountain bike / Apparel / Men" with "" on range G:G on selectedSheet
+  selectedSheet.getRange("G:G").replaceAll("Archive / Archive / Mountain bike / Apparel / Men", "", { completeMatch: false, matchCase: false });
+  // Replace all "Archive / Archive / Mountain bike / Apparel / Men " with "" on range G:G on selectedSheet
+  selectedSheet.getRange("G:G").replaceAll("Archive / Archive / Mountain bike / Apparel / Men ", "", { completeMatch: false, matchCase: false });
+  // Replace all "Archive / Archive / Mountain bike / Apparel / View all" with "" on range G:G on selectedSheet
+  selectedSheet.getRange("G:G").replaceAll("Archive / Archive / Mountain bike / Apparel / View all", "", { completeMatch: false, matchCase: false });
+  // Replace all "Archive / Archive / Mountain bike / Apparel / View all " with "" on range G:G on selectedSheet
+  selectedSheet.getRange("G:G").replaceAll("Archive / Archive / Mountain bike / Apparel / View all ", "", { completeMatch: false, matchCase: false });
+  // Replace all "Archive / Archive / Road-Gravel Cycling / Apparel / Men" with "" on range G:G on selectedSheet
+  selectedSheet.getRange("G:G").replaceAll("Archive / Archive / Road-Gravel Cycling / Apparel / Men", "", { completeMatch: false, matchCase: false });
+  // Replace all "Archive / Archive / Road-Gravel Cycling / Apparel / Men " with "" on range G:G on selectedSheet
+  selectedSheet.getRange("G:G").replaceAll("Archive / Archive / Road-Gravel Cycling / Apparel / Men ", "", { completeMatch: false, matchCase: false });
+  // Replace all "Archive / Archive / Road-Gravel Cycling / Apparel / Women" with "" on range G:G on selectedSheet
+  selectedSheet.getRange("G:G").replaceAll("Archive / Archive / Road-Gravel Cycling / Apparel / Women", "", { completeMatch: false, matchCase: false });
+  // Replace all "Archive / Archive / Road-Gravel Cycling / Apparel / Women " with "" on range G:G on selectedSheet
+  selectedSheet.getRange("G:G").replaceAll("Archive / Archive / Road-Gravel Cycling / Apparel / Women ", "", { completeMatch: false, matchCase: false });
+  // Replace all "Archive / Archive / Road-Gravel Cycling / Apparel / View all" with "" on range G:G on selectedSheet
+  selectedSheet.getRange("G:G").replaceAll("Archive / Archive / Road-Gravel Cycling / Apparel / View all", "", { completeMatch: false, matchCase: false });
+  // Replace all "Archive / Archive / Snow / Apparel / Men" with "" on range G:G on selectedSheet
+  selectedSheet.getRange("G:G").replaceAll("Archive / Archive / Snow / Apparel / Men", "", { completeMatch: false, matchCase: false });
+  // Replace all "Archive / Archive / Snow / Apparel / Women" with "" on range G:G on selectedSheet
+  selectedSheet.getRange("G:G").replaceAll("Archive / Archive / Snow / Apparel / Women", "", { completeMatch: false, matchCase: false });
+  // Replace all "Archive / Archive / Snow / Apparel / View all" with "" on range G:G on selectedSheet
+  selectedSheet.getRange("G:G").replaceAll("Archive / Archive / Snow / Apparel / View all", "", { completeMatch: false, matchCase: false });
+  // Replace all "Archive / Archive / Mountain bike / Helmets" with "" on range G:G on selectedSheet
+  selectedSheet.getRange("G:G").replaceAll("Archive / Archive / Mountain bike / Helmets", "", { completeMatch: false, matchCase: false });
+  // Replace all "Archive / Archive / Mountain bike / Eyewear" with "" on range G:G on selectedSheet
+  selectedSheet.getRange("G:G").replaceAll("Archive / Archive / Mountain bike / Eyewear", "", { completeMatch: false, matchCase: false });
+  // Replace all "Archive / Archive / Mountain bike / Apparel" with "" on range G:G on selectedSheet
+  selectedSheet.getRange("G:G").replaceAll("Archive / Archive / Mountain bike / Apparel", "", { completeMatch: false, matchCase: false });
+  // Replace all "Archive / Archive / Mountain bike / Protection" with "" on range G:G on selectedSheet
+  selectedSheet.getRange("G:G").replaceAll("Archive / Archive / Mountain bike / Protection", "", { completeMatch: false, matchCase: false });
+  // Replace all "Archive / Archive / Mountain bike / Accessories" with "" on range G:G on selectedSheet
+  selectedSheet.getRange("G:G").replaceAll("Archive / Archive / Mountain bike / Accessories", "", { completeMatch: false, matchCase: false });
+  // Replace all "Archive / Archive / Mountain bike / Youth" with "" on range G:G on selectedSheet
+  selectedSheet.getRange("G:G").replaceAll("Archive / Archive / Mountain bike / Youth", "", { completeMatch: false, matchCase: false });
+  // Replace all "Archive / Archive / Mountain bike / View all" with "" on range G:G on selectedSheet
+  selectedSheet.getRange("G:G").replaceAll("Archive / Archive / Mountain bike / View all", "", { completeMatch: false, matchCase: false });
+  // Replace all "Archive / Archive / Road-Gravel Cycling / Helmets" with "" on range G:G on selectedSheet
+  selectedSheet.getRange("G:G").replaceAll("Archive / Archive / Road-Gravel Cycling / Helmets", "", { completeMatch: false, matchCase: false });
+  // Replace all " Archive / Archive / Road-Gravel Cycling / Eyewear" with "" on range G:G on selectedSheet
+  selectedSheet.getRange("G:G").replaceAll(" Archive / Archive / Road-Gravel Cycling / Eyewear", "", { completeMatch: false, matchCase: false });
+  // Replace all "Archive / Archive / Road-Gravel Cycling / Eyewear" with "" on range G:G on selectedSheet
+  selectedSheet.getRange("G:G").replaceAll("Archive / Archive / Road-Gravel Cycling / Eyewear", "", { completeMatch: false, matchCase: false });
+  // Replace all "Archive / Archive / Road-Gravel Cycling / Apparel " with "" on range G:G on selectedSheet
+  selectedSheet.getRange("G:G").replaceAll("Archive / Archive / Road-Gravel Cycling / Apparel ", "", { completeMatch: false, matchCase: false });
+  // Replace all "Archive / Archive / Road-Gravel Cycling / Apparel" with "" on range G:G on selectedSheet
+  selectedSheet.getRange("G:G").replaceAll("Archive / Archive / Road-Gravel Cycling / Apparel", "", { completeMatch: false, matchCase: false });
+  // Replace all "Archive / Archive / Road-Gravel Cycling / Eyewear" with "" on range G:G on selectedSheet
+  selectedSheet.getRange("G:G").replaceAll("Archive / Archive / Road-Gravel Cycling / Eyewear", "", { completeMatch: false, matchCase: false });
+  // Replace all "Archive / Archive / Road-Gravel Cycling / accessories" with "Archive / Archive / Road-Gravel Cycling / accessories" on range G:G on selectedSheet
+  selectedSheet.getRange("G:G").replaceAll("Archive / Archive / Road-Gravel Cycling / accessories", "Archive / Archive / Road-Gravel Cycling / accessories", { completeMatch: false, matchCase: false });
+  // Replace all "Archive / Archive / Road-Gravel Cycling / accessories" with "" on range G:G on selectedSheet
+  selectedSheet.getRange("G:G").replaceAll("Archive / Archive / Road-Gravel Cycling / accessories", "", { completeMatch: false, matchCase: false });
+  // Replace all "Archive / Archive / Road-Gravel Cycling / Apparel" with "" on range G:G on selectedSheet
+  selectedSheet.getRange("G:G").replaceAll("Archive / Archive / Road-Gravel Cycling / Apparel", "", { completeMatch: false, matchCase: false });
+  // Replace all "Archive / Archive / Road-Gravel Cycling / Youth" with "" on range G:G on selectedSheet
+  selectedSheet.getRange("G:G").replaceAll("Archive / Archive / Road-Gravel Cycling / Youth", "", { completeMatch: false, matchCase: false });
+  // Replace all "Archive / Archive / Snow / Helmets" with "" on range G:G on selectedSheet
+  selectedSheet.getRange("G:G").replaceAll("Archive / Archive / Snow / Helmets", "", { completeMatch: false, matchCase: false });
+  // Replace all "Archive / Archive / Snow / Goggles & Sunglasses" with "" on range G:G on selectedSheet
+  selectedSheet.getRange("G:G").replaceAll("Archive / Archive / Snow / Goggles & Sunglasses", "", { completeMatch: false, matchCase: false });
+  // Replace all "Archive / Archive / Snow / Apparel " with "" on range G:G on selectedSheet
+  selectedSheet.getRange("G:G").replaceAll("Archive / Archive / Snow / Apparel ", "", { completeMatch: false, matchCase: false });
+  // Replace all "Archive / Archive / Snow / Apparel" with "" on range G:G on selectedSheet
+  selectedSheet.getRange("G:G").replaceAll("Archive / Archive / Snow / Apparel", "", { completeMatch: false, matchCase: false });
+  // Replace all "Archive / Archive / Snow / Protection" with "" on range G:G on selectedSheet
+  selectedSheet.getRange("G:G").replaceAll("Archive / Archive / Snow / Protection", "", { completeMatch: false, matchCase: false });
+  // Replace all "Archive / Archive / Snow / Accessories" with "" on range G:G on selectedSheet
+  selectedSheet.getRange("G:G").replaceAll("Archive / Archive / Snow / Accessories", "", { completeMatch: false, matchCase: false });
+  // Replace all "Archive / Archive / Snow / Youth" with "" on range G:G on selectedSheet
+  selectedSheet.getRange("G:G").replaceAll("Archive / Archive / Snow / Youth", "", { completeMatch: false, matchCase: false });
+  // Replace all "Archive / Archive / Snow / View all" with "" on range G:G on selectedSheet
+  selectedSheet.getRange("G:G").replaceAll("Archive / Archive / Snow / View all", "", { completeMatch: false, matchCase: false });
+  // Replace all "Archive / Archive / Road-Gravel Cycling" with "" on range G:G on selectedSheet
+  selectedSheet.getRange("G:G").replaceAll("Archive / Archive / Road-Gravel Cycling", "", { completeMatch: false, matchCase: false });
+  // Replace all "Archive / Archive / Snow" with "" on range G:G on selectedSheet
+  selectedSheet.getRange("G:G").replaceAll("Archive / Archive / Snow", "", { completeMatch: false, matchCase: false });
+  // Replace all "Archive / Archive" with "" on range G:G on selectedSheet
+  selectedSheet.getRange("G:G").replaceAll("Archive / Archive", "", { completeMatch: false, matchCase: false });
+  // Replace all "Archive" with "" on range G:G on selectedSheet
+  selectedSheet.getRange("G:G").replaceAll("Archive", "", { completeMatch: false, matchCase: false });
+
+  selectedSheet.getRange("G:G").getFormat().setColumnWidth(26.44);
+  // Insert at range C:C on selectedSheet, move existing cells right
+  selectedSheet.getRange("C:C").insert(ExcelScript.InsertShiftDirection.right);
+  // Set range C1:C2 on selectedSheet
+  selectedSheet.getRange("C1:C2").setFormulasLocal([["Fullish"], ["=B2&G2"]]);
+  // Paste to extended range obtained by extending down from range C2 on selectedSheet from extended range obtained by extending down from range C2 on selectedSheet
+  selectedSheet.getRange("C2").getExtendedRange(ExcelScript.KeyboardDirection.down).copyFrom(selectedSheet.getRange("C2").getExtendedRange(ExcelScript.KeyboardDirection.down), ExcelScript.RangeCopyType.values, false, false);
+  // Set width of column(s) at range C:C on selectedSheet to 22.33
+  selectedSheet.getRange("C:C").getFormat().setColumnWidth(22.33);
+  campaign_upload_ready = workbook.getWorksheet("Campaign upload ready");
+  // Insert at range C:C on campaign_upload_ready, move existing cells right
+  campaign_upload_ready.getRange("C:C").insert(ExcelScript.InsertShiftDirection.right);
+  // Set range C1:C2 on campaign_upload_ready
+  campaign_upload_ready.getRange("C1:C2").setFormulasLocal([["Fullish"], ["=B2&E2"]]);
+  // Paste to extended range obtained by extending down from range C2 on campaign_upload_ready from extended range obtained by extending down from range C2 on campaign_upload_ready
+  campaign_upload_ready.getRange("C2").getExtendedRange(ExcelScript.KeyboardDirection.down).copyFrom(campaign_upload_ready.getRange("C2").getExtendedRange(ExcelScript.KeyboardDirection.down), ExcelScript.RangeCopyType.values, false, false);
+  // Set range I1:I2 on selectedSheet
+  selectedSheet.getRange("I2").setFormulaLocal("=IF(COUNTIF('Campaign upload ready'!C:C,C2) > 0,\"Yes\",\"No\")");
+  let table1 = workbook.getTable("Table1");
+
+  selectedSheet.getRange("I2").getExtendedRange(ExcelScript.KeyboardDirection.down).copyFrom(selectedSheet.getRange("I2").getExtendedRange(ExcelScript.KeyboardDirection.down), ExcelScript.RangeCopyType.values, false, false);
+  // Apply checked items filter on table table1 column Lookup
+  table1.getColumnByName("Column1").getFilter().applyValuesFilter(["Yes"]);
+  // Delete range C:C on selectedSheet
+  selectedSheet.getRange("C:C").delete(ExcelScript.DeleteShiftDirection.left);
+  campaign_upload_ready = workbook.getWorksheet("Campaign upload ready");
+  // Delete range C:C on campaign_upload_ready
+  campaign_upload_ready.getRange("C:C").delete(ExcelScript.DeleteShiftDirection.left);
+
+}
