@@ -165,7 +165,8 @@ function main(workbook: ExcelScript.Workbook) {
             "Archive / Archive / Snow / Youth",
             "Archive / Archive / Road-Gravel Cycling",
             "Archive / Archive / Snow",
-            "Archive / Archive"
+            "Archive / Archive",
+            "Archive"
         ];
 
         // Replace each value in the "Category" column with an empty string
