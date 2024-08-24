@@ -57,16 +57,16 @@ Sub ReorganizeWarehouseData()
         End If
     Next i
     
-Set rRange = Range("J1", Range("J" & Rows.Count).End(xlUp)) 
-lCount = rRange.Rows.Count 
+Set rRange = Range("J1", Range("J" & Rows.Count).End(xlUp))
+lCount = rRange.Rows.Count
 
-For lCount = lCount To 1 Step -1 
-    With rRange.Cells(lCount, 1) 
-        If WorksheetFunction.CountIf(rRange, .Value) > 1 Then 
-            .EntireRow.Delete 
-        End If 
-    End With 
-Next lCount 
+For lCount = lCount To 1 Step -1
+    With rRange.Cells(lCount, 1)
+        If WorksheetFunction.CountIf(rRange, .Value) > 1 Then
+            .EntireRow.Delete
+        End If
+    End With
+Next lCount
     
     ' Write the consolidated data back to the sheet
     outputRow = 2
@@ -101,6 +101,73 @@ Next lCount
         ws.Cells(i, "K").Value = ws.Cells(i, "H").Value + ws.Cells(i, "I").Value + ws.Cells(i, "J").Value
     Next i
 ws.Cells(1, "L").Value = "Tags"
+
+
+
+
+
+    Dim wsNew As Worksheet
+    Dim rng As Range
+    Dim cell As Range
+    Dim newRow As Long
+    Dim sums As Variant
+    Dim matchRow As Variant
+
+    ' Set the worksheet variables
+    Set ws = ThisWorkbook.Sheets("Sheet1")
+    Set wsNew = ThisWorkbook.Sheets.Add
+    wsNew.Name = "Summary"
+
+    ' Copy the headers from Sheet1 to Summary sheet
+    ws.Rows(1).Copy Destination:=wsNew.Rows(1)
+
+    ' Create a dictionary to store unique values and their sums for each column
+    Set dict = CreateObject("Scripting.Dictionary")
+
+    ' Find the last row with data in Column A
+    lastRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
+
+    ' Set the range to look through in Column A
+    Set rng = ws.Range("A2:A" & lastRow) ' Assuming headers in row 1
+
+    ' Loop through each cell in the range
+    newRow = 2
+    For Each cell In rng
+        If Not dict.exists(cell.Value) Then
+            ' If the value is not in the dictionary, add it with the corresponding values from Columns H, I, J
+            sums = Array(ws.Cells(cell.Row, "H").Value, ws.Cells(cell.Row, "I").Value, ws.Cells(cell.Row, "J").Value)
+            dict.Add cell.Value, sums
+
+            ' Copy columns A to G to the new sheet
+            wsNew.Cells(newRow, 1).Resize(1, 7).Value = ws.Cells(cell.Row, 1).Resize(1, 7).Value
+
+            ' Copy the sums to the new sheet
+            wsNew.Cells(newRow, 8).Value = sums(0)
+            wsNew.Cells(newRow, 9).Value = sums(1)
+            wsNew.Cells(newRow, 10).Value = sums(2)
+
+            newRow = newRow + 1
+        Else
+            ' If the value is already in the dictionary, update the sums
+            sums = dict(cell.Value)
+            sums(0) = sums(0) + ws.Cells(cell.Row, "H").Value
+            sums(1) = sums(1) + ws.Cells(cell.Row, "I").Value
+            sums(2) = sums(2) + ws.Cells(cell.Row, "J").Value
+            dict(cell.Value) = sums
+
+            ' Find the row in the Summary sheet that matches the value in column A
+            matchRow = Application.Match(cell.Value, wsNew.Columns(1), 0)
+            If Not IsError(matchRow) Then
+                ' Update the sums in the correct row
+                wsNew.Cells(matchRow, 8).Value = sums(0)
+                wsNew.Cells(matchRow, 9).Value = sums(1)
+                wsNew.Cells(matchRow, 10).Value = sums(2)
+            End If
+        End If
+    Next cell
+
+    ' Format the new sheet
+    wsNew.Columns("A:J").AutoFit
 
     MsgBox "Yoooo boss, I think I'm becoming a hacker just like big Don Ondrej"
 End Sub
