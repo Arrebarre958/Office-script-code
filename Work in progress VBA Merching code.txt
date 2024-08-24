@@ -2,9 +2,6 @@ Sub TransposeWarehouseData()
     Dim ws As Worksheet
     Set ws = ThisWorkbook.Sheets("Sheet1") ' Change this to your worksheet name if needed
     
-    ' Delete column U before starting
-    ws.Columns("U").Delete
-    
     Dim lastRow As Long
     lastRow = ws.Cells(ws.Rows.Count, "T").End(xlUp).Row ' Find the last row with data in column T
     
@@ -14,33 +11,25 @@ Sub TransposeWarehouseData()
     
     outputRow = 2 ' Start writing output from row 2
     
-    ' Set headers in the first row (adjust if you have other columns)
+    ' Set headers in the first row
     ws.Cells(1, "U").Value = "Netherlands"
     ws.Cells(1, "V").Value = "Salt Lake City"
     ws.Cells(1, "W").Value = "Sidney"
     
-    ' Initialize variables for the warehouse quantities and other columns
+    ' Initialize variables
     Dim currentID As String
     Dim netherlandsQty As Variant, saltLakeQty As Variant, sidneyQty As Variant
-    Dim colData As Collection
-    Set colData = New Collection
     
     ' Loop through rows
     For i = 2 To lastRow ' Starting from row 2
         currentID = ws.Cells(i, "T").Value ' Get the current Product ID
         
-        ' Check if this is a new Product ID
         If productID <> currentID Then
             ' If Product ID changes, write the previously stored data to the output row
             If outputRow > 2 Then ' Skip first run
                 ws.Cells(outputRow - 1, "U").Value = netherlandsQty
                 ws.Cells(outputRow - 1, "V").Value = saltLakeQty
                 ws.Cells(outputRow - 1, "W").Value = sidneyQty
-                
-                ' Transfer other columns' data to the first occurrence row
-                For Each itm In colData
-                    ws.Cells(outputRow - 1, itm.Column).Value = itm.Value
-                Next itm
             End If
             
             ' Reset for new Product ID
@@ -50,14 +39,6 @@ Sub TransposeWarehouseData()
             netherlandsQty = 0
             saltLakeQty = 0
             sidneyQty = 0
-            
-            ' Clear the previous collection and store the other column data for this row
-            Set colData = New Collection
-            For col = 1 To ws.UsedRange.Columns.Count
-                If col <> 20 And col <> 21 Then ' Exclude warehouse and quantity columns
-                    colData.Add ws.Cells(i, col), CStr(col) ' Store other columns
-                End If
-            Next col
             
             outputRow = outputRow + 1 ' Move to the next output row
         End If
@@ -77,18 +58,4 @@ Sub TransposeWarehouseData()
     ws.Cells(outputRow - 1, "U").Value = netherlandsQty
     ws.Cells(outputRow - 1, "V").Value = saltLakeQty
     ws.Cells(outputRow - 1, "W").Value = sidneyQty
-    
-    ' Transfer the remaining columns' data for the last product
-    For Each itm In colData
-        ws.Cells(outputRow - 1, itm.Column).Value = itm.Value
-    Next itm
-    
-    ' Delete the duplicate rows for each product
-    Dim deleteRow As Long
-    For deleteRow = lastRow To 2 Step -1 ' Go from bottom to top to safely delete rows
-        If ws.Cells(deleteRow, "T").Value = ws.Cells(deleteRow - 1, "T").Value Then
-            ws.Rows(deleteRow).Delete
-        End If
-    Next deleteRow
 End Sub
-
