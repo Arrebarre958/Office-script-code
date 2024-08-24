@@ -1,0 +1,106 @@
+Sub ReorganizeWarehouseData()
+    Dim ws As Worksheet
+    Dim lastRow As Long, i As Long
+    Dim newHeaders As Variant
+    Dim headerCol As Long
+    Dim dict As Object
+    Dim key As Variant
+    Dim currentArray As Variant
+    Dim outputRow As Long
+    
+    ' Define the new headers
+    newHeaders = Array("Salt Lake City", "Sidney", "Netherlands")
+    
+    ' Set worksheet
+    Set ws = ThisWorkbook.Sheets(1) ' Change the sheet index or name if necessary
+    
+    ' Find the last row in the sheet
+    lastRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
+    
+    ' Add new headers in the correct columns (after the existing columns)
+    headerCol = ws.Cells(1, ws.Columns.Count).End(xlToLeft).Column + 1
+    For i = LBound(newHeaders) To UBound(newHeaders)
+        ws.Cells(1, headerCol + i).Value = newHeaders(i)
+    Next i
+    
+    ' Loop through each row and place the quantities in the corresponding new column
+    For i = 2 To lastRow
+        Select Case ws.Cells(i, 22).Value ' Column V is the 22nd column
+            Case "Salt Lake City"
+                ws.Cells(i, headerCol).Value = ws.Cells(i, 23).Value ' Column W is the 23rd column
+            Case "Sidney"
+                ws.Cells(i, headerCol + 1).Value = ws.Cells(i, 23).Value
+            Case "Netherlands"
+                ws.Cells(i, headerCol + 2).Value = ws.Cells(i, 23).Value
+        End Select
+    Next i
+
+
+
+    Set ws = ThisWorkbook.Sheets("Sheet1") ' Change "Sheet1" to the name of your sheet
+    lastRow = ws.Cells(ws.Rows.Count, "J").End(xlUp).Row
+    
+    Set dict = CreateObject("Scripting.Dictionary")
+    
+    ' Loop through the data
+    For i = 2 To lastRow
+        key = ws.Cells(i, "J").Value
+        
+        If Not dict.exists(key) Then
+            dict.Add key, Array(ws.Cells(i, "CQ").Value, ws.Cells(i, "CR").Value, ws.Cells(i, "CS").Value)
+        Else
+            currentArray = dict(key)
+            currentArray(0) = currentArray(0) + ws.Cells(i, "CQ").Value
+            currentArray(1) = currentArray(1) + ws.Cells(i, "CR").Value
+            currentArray(2) = currentArray(2) + ws.Cells(i, "CS").Value
+            dict(key) = currentArray
+        End If
+    Next i
+    
+Set rRange = Range("J1", Range("J" & Rows.Count).End(xlUp)) 
+lCount = rRange.Rows.Count 
+
+For lCount = lCount To 1 Step -1 
+    With rRange.Cells(lCount, 1) 
+        If WorksheetFunction.CountIf(rRange, .Value) > 1 Then 
+            .EntireRow.Delete 
+        End If 
+    End With 
+Next lCount 
+    
+    ' Write the consolidated data back to the sheet
+    outputRow = 2
+    For Each key In dict.keys
+        ws.Cells(outputRow, "J").Value = key
+        ws.Cells(outputRow, "CQ").Value = dict(key)(0)
+        ws.Cells(outputRow, "CR").Value = dict(key)(1)
+        ws.Cells(outputRow, "CS").Value = dict(key)(2)
+        outputRow = outputRow + 1
+    Next key
+
+    ws.Range("AD:CP").Delete
+    ws.Range("K:AB").Delete
+    ws.Range("I:I").Delete
+    ws.Range("G:G").Delete
+    ws.Range("E:E").Delete
+    ws.Range("C:C").Delete
+    
+
+
+    ' Set the worksheet to work on (adjust as needed)
+    Set ws = ThisWorkbook.Sheets("Sheet1")
+
+    ' Find the last row with data in column H
+    lastRow = ws.Cells(ws.Rows.Count, "H").End(xlUp).Row
+
+    ' Add the header in K1
+    ws.Cells(1, "K").Value = "Total"
+
+    ' Loop through each row and calculate the sum of H, I, and J
+    For i = 2 To lastRow
+        ws.Cells(i, "K").Value = ws.Cells(i, "H").Value + ws.Cells(i, "I").Value + ws.Cells(i, "J").Value
+    Next i
+ws.Cells(1, "L").Value = "Tags"
+
+    MsgBox "Yoooo boss, I think I'm becoming a hacker just like big Don Ondrej"
+End Sub
