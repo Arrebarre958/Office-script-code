@@ -262,7 +262,20 @@ ws.Cells(1, "M").Value = "Tags"
             wsNew.Cells(i, 2).Value = "POC"
         End If
     Next i
-
+  
+    ' Insert a new column between K and L
+    wsNew.Columns("L").Insert Shift:=xlToRight, CopyOrigin:=xlFormatFromLeftOrAbove
+    
+    ' Add header "Total" to the new column L
+    wsNew.Cells(1, 12).Value = "Total"
+    
+    ' Find the last row with data in the sheet
+    lastRow = wsNew.Cells(ws.Rows.Count, "I").End(xlUp).Row
+    
+    ' Loop through each row and calculate the sum of columns I, J, and K
+    For i = 2 To lastRow
+        wsNew.Cells(i, 12).Formula = "=I" & i & "+J" & i & "+K" & i
+    Next i
         ' Format the new sheet
     wsNew.Columns("A:L").AutoFit
     ws.Columns("A:M").AutoFit
