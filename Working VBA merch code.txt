@@ -7,6 +7,19 @@ Sub ReorganizeWarehouseData()
     Dim key As Variant
     Dim currentArray As Variant
     Dim outputRow As Long
+    Dim lastRowSummary As Long
+    Dim lastRowSheet1 As Long
+    Dim productID As String
+    Dim sumH As Double
+    Dim sumI As Double
+    Dim sumJ As Double
+    Dim j As Long
+    Dim wsNew As Worksheet
+    Dim rng As Range
+    Dim cell As Range
+    Dim newRow As Long
+    Dim sums As Variant
+    Dim matchRow As Variant
     
     ' Define the new headers
     newHeaders = Array("Salt Lake City", "Sidney", "Netherlands")
@@ -86,10 +99,6 @@ Next lCount
     ws.Range("C:C").Delete
     
 
-
-    ' Set the worksheet to work on (adjust as needed)
-    Set ws = ThisWorkbook.Sheets("Sheet1")
-
     ' Find the last row with data in column H
     lastRow = ws.Cells(ws.Rows.Count, "H").End(xlUp).Row
 
@@ -102,16 +111,6 @@ Next lCount
     Next i
 ws.Cells(1, "L").Value = "Tags"
 
-
-
-
-
-    Dim wsNew As Worksheet
-    Dim rng As Range
-    Dim cell As Range
-    Dim newRow As Long
-    Dim sums As Variant
-    Dim matchRow As Variant
 
     ' Set the worksheet variables
     Set ws = ThisWorkbook.Sheets("Sheet1")
@@ -166,8 +165,108 @@ ws.Cells(1, "L").Value = "Tags"
         End If
     Next cell
 
-    ' Format the new sheet
-    wsNew.Columns("A:J").AutoFit
+    ' Set references to sheets
+    Set wsNew = ThisWorkbook.Sheets("Summary")
+    Set ws = ThisWorkbook.Sheets("Sheet1")
 
-    MsgBox "Yoooo boss, I think I'm becoming a hacker just like big Don Ondrej"
+    ' Find the last row in both sheets
+    lastRowSummary = wsNew.Cells(wsNew.Rows.Count, "A").End(xlUp).Row
+    lastRowSheet1 = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
+
+    ' Loop through each Product ID in the Summary sheet
+    For i = 2 To lastRowSummary ' Assuming there is a header row in row 1
+        productID = wsNew.Cells(i, "A").Value
+        
+        ' Reset sums
+        sumH = 0
+        sumI = 0
+        sumJ = 0
+
+        ' Loop through each row in Sheet1 to find matching Product ID
+        For j = 2 To lastRowSheet1 ' Assuming there is a header row in row 1
+            If ws.Cells(j, "A").Value = productID Then
+                sumH = sumH + ws.Cells(j, "H").Value
+                sumI = sumI + ws.Cells(j, "I").Value
+                sumJ = sumJ + ws.Cells(j, "J").Value
+            End If
+        Next j
+
+        ' Update the Summary sheet with the calculated sums
+        wsNew.Cells(i, "H").Value = sumH
+        wsNew.Cells(i, "I").Value = sumI
+        wsNew.Cells(i, "J").Value = sumJ
+    Next i
+
+
+    lastRow = ws.Cells(ws.Rows.Count, "H").End(xlUp).Row
+
+    ' Add the header in K1
+    ws.Cells(1, "L").Value = "Total"
+
+    ' Loop through each row and calculate the sum of H, I, and J
+    For i = 2 To lastRow
+        ws.Cells(i, "K").Value = ws.Cells(i, "H").Value + ws.Cells(i, "I").Value + ws.Cells(i, "J").Value
+    Next i
+ws.Cells(1, "M").Value = "Tags"
+
+    Dim found As Boolean
+
+    ' Set references to sheets
+    Set wsNew = ThisWorkbook.Sheets("Summary")
+    Set ws = ThisWorkbook.Sheets("Sheet1")
+
+    ' Find the last row in both sheets
+    lastRowSummary = wsNew.Cells(wsNew.Rows.Count, "A").End(xlUp).Row
+    lastRowSheet1 = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
+
+    ' Loop through each Product ID in the Summary sheet
+    For i = 2 To lastRowSummary ' Assuming there is a header row in row 1
+        productID = wsNew.Cells(i, "A").Value
+        found = False ' Reset found flag for each Product ID
+
+        ' Loop through each row in Sheet1 to find matching Product ID
+        For j = 2 To lastRowSheet1 ' Assuming there is a header row in row 1
+            If ws.Cells(j, "A").Value = productID Then
+                If ws.Cells(j, "H").Value > 0 And _
+                   ws.Cells(j, "I").Value > 0 And _
+                   ws.Cells(j, "J").Value > 0 Then
+                    found = True
+                    Exit For ' Exit loop as soon as a match is found
+                End If
+            End If
+        Next j
+
+        ' Update the Summary sheet with "Yes" or "No"
+        If found Then
+            wsNew.Cells(i, "K").Value = "Yes" ' Adjust column K if needed
+        Else
+            wsNew.Cells(i, "K").Value = "No" ' Adjust column K if needed
+        End If
+    Next i
+
+    wsNew.Cells(1, "K").Value = "Check for all variant stock"
+
+    ' Insert a new column at column B
+    wsNew.Columns("B").Insert Shift:=xlToRight, CopyOrigin:=xlFormatFromLeftOrAbove
+    
+    ' Add header "Brand" to the new column B
+    wsNew.Cells(1, 2).Value = "Brand"
+    
+    ' Find the last row with data in the sheet
+    lastRow = wsNew.Cells(ws.Rows.Count, "A").End(xlUp).Row
+    
+    ' Loop through each row and fill the "Brand" column with "POC"
+    For i = 2 To lastRow
+        ' Check if there's any content in other columns of the row
+        If Application.WorksheetFunction.CountA(ws.Rows(i)) > 1 Then
+            wsNew.Cells(i, 2).Value = "POC"
+        End If
+    Next i
+
+        ' Format the new sheet
+    wsNew.Columns("A:L").AutoFit
+    ws.Columns("A:M").AutoFit
+
+    MsgBox "Yoooo boss, I think I'm becoming a hacker just like big Don Ondrej, I think he would be proud"
+
 End Sub
