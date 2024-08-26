@@ -71,10 +71,7 @@ function main(workbook: ExcelScript.Workbook) {
   // Replace all "% Discount" with "" on range H:H on sheet3
   sheet3.getRange("H:H").replaceAll("% Discount", "", { completeMatch: false, matchCase: false });
   // Replace all "Cycling /" with "" on range F:F on sheet3
-  sheet3.getRange("F:F").replaceAll("Cycling /", "", { completeMatch: false, matchCase: false });
-  // Replace all "Snow /" with "" on range F:F on sheet3
-  sheet3.getRange("F:F").replaceAll("Snow /", "", { completeMatch: false, matchCase: false });
-  // Additional code
+
   sheet3.getRange("H:H").getFormat().setColumnWidth(16.8);
   // Rename worksheet to "Campaign upload ready"
   sheet3.setName("Campaign upload ready");
