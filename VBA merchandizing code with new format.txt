@@ -1,0 +1,195 @@
+Sub ReorganizeWarehouseData()
+    Dim ws As Worksheet
+    Dim lastRow As Long, i As Long
+    Dim newHeaders As Variant
+    Dim headerCol As Long
+    Dim dict As Object
+    Dim key As Variant
+    Dim currentArray As Variant
+    Dim outputRow As Long
+    Dim lastRowSummary As Long
+    Dim lastRowSheet1 As Long
+    Dim productID As String
+    Dim sumH As Double
+    Dim sumI As Double
+    Dim sumJ As Double
+    Dim j As Long
+    Dim wsNew As Worksheet
+    Dim rng As Range
+    Dim cell As Range
+    Dim newRow As Long
+    Dim sums As Variant
+    Dim matchRow As Variant
+
+    Columns("CQ").Delete
+
+    ' Define the new headers
+    newHeaders = Array("Salt Lake City", "Sidney", "Netherlands")
+
+    ' Set worksheet
+    Set ws = ThisWorkbook.Sheets(1) ' Change the sheet index or name if necessary
+    
+    ' Find the last row in the sheet
+    lastRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
+    
+    ' Add new headers in the correct columns (after the existing columns)
+    headerCol = ws.Cells(1, ws.Columns.Count).End(xlToLeft).Column + 1
+    For i = LBound(newHeaders) To UBound(newHeaders)
+        ws.Cells(1, headerCol + i).Value = newHeaders(i)
+    Next i
+    
+    ' Loop through each row and place the quantities in the corresponding new column
+    For i = 2 To lastRow
+        ws.Cells(i, headerCol).Value = ws.Cells(i, 22).Value ' Column V (Netherlands) is the 22nd column
+        ws.Cells(i, headerCol + 1).Value = ws.Cells(i, 23).Value ' Column W (Salt Lake City) is the 23rd column
+        ws.Cells(i, headerCol + 2).Value = ws.Cells(i, 24).Value ' Column X (Sidney) is the 24th column
+    Next i
+
+    Set ws = ThisWorkbook.Sheets("Sheet1") ' Change "Sheet1" to the name of your sheet
+    lastRow = ws.Cells(ws.Rows.Count, "J").End(xlUp).Row
+    
+    Set dict = CreateObject("Scripting.Dictionary")
+    
+    ' Loop through the data
+    For i = 2 To lastRow
+        key = ws.Cells(i, "J").Value
+        
+        If Not dict.exists(key) Then
+            dict.Add key, Array(ws.Cells(i, headerCol).Value, ws.Cells(i, headerCol + 1).Value, ws.Cells(i, headerCol + 2).Value)
+        Else
+            currentArray = dict(key)
+            currentArray(0) = currentArray(0) + ws.Cells(i, headerCol).Value
+            currentArray(1) = currentArray(1) + ws.Cells(i, headerCol + 1).Value
+            currentArray(2) = currentArray(2) + ws.Cells(i, headerCol + 2).Value
+            dict(key) = currentArray
+        End If
+    Next i
+    
+    Set rRange = Range("J1", Range("J" & Rows.Count).End(xlUp))
+    lCount = rRange.Rows.Count
+
+    For lCount = lCount To 1 Step -1
+        With rRange.Cells(lCount, 1)
+            If WorksheetFunction.CountIf(rRange, .Value) > 1 Then
+                .EntireRow.Delete
+            End If
+        End With
+    Next lCount
+    
+    ' Write the consolidated data back to the sheet
+    outputRow = 2
+    For Each key In dict.keys
+        ws.Cells(outputRow, "J").Value = key
+        ws.Cells(outputRow, headerCol).Value = dict(key)(0)
+        ws.Cells(outputRow, headerCol + 1).Value = dict(key)(1)
+        ws.Cells(outputRow, headerCol + 2).Value = dict(key)(2)
+        outputRow = outputRow + 1
+    Next key
+
+    ws.Range("AD:CP").Delete
+    ws.Range("K:AB").Delete
+    ws.Range("I:I").Delete
+    ws.Range("G:G").Delete
+    ws.Range("E:E").Delete
+    ws.Range("C:C").Delete
+    
+
+    ' Find the last row with data in column H
+    lastRow = ws.Cells(ws.Rows.Count, "H").End(xlUp).Row
+
+    ' Add the header in K1
+    ws.Cells(1, "K").Value = "Total"
+
+    ' Loop through each row and calculate the sum of H, I, and J
+    For i = 2 To lastRow
+        ws.Cells(i, "K").Value = ws.Cells(i, "H").Value + ws.Cells(i, "I").Value + ws.Cells(i, "J").Value
+    Next i
+ws.Cells(1, "L").Value = "Tags"
+
+    ' Set the worksheet variables
+    Set ws = ThisWorkbook.Sheets("Sheet1")
+    Set wsNew = ThisWorkbook.Sheets.Add
+    wsNew.Name = "Summary"
+
+    ' Copy the headers from Sheet1 to Summary sheet
+    ws.Rows(1).Copy Destination:=wsNew.Rows(1)
+
+    ' Create a dictionary to store unique values and their sums for each column
+    Set dict = CreateObject("Scripting.Dictionary")
+
+    ' Find the last row with data in Column A
+    lastRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
+
+    ' Set the range to look through in Column A
+    Set rng = ws.Range("A2:A" & lastRow) ' Assuming headers in row 1
+
+    ' Loop through each cell in the range
+    newRow = 2
+    For Each cell In rng
+        If Not dict.exists(cell.Value) Then
+            ' If the value is not in the dictionary, add it with the corresponding values from Columns H, I, J
+            sums = Array(ws.Cells(cell.Row, "H").Value, ws.Cells(cell.Row, "I").Value, ws.Cells(cell.Row, "J").Value)
+            dict.Add cell.Value, sums
+
+            ' Copy columns A to G to the new sheet
+            wsNew.Cells(newRow, 1).Resize(1, 7).Value = ws.Cells(cell.Row, 1).Resize(1, 7).Value
+
+            ' Copy the sums to the new sheet
+            wsNew.Cells(newRow, 8).Value = sums(0)
+            wsNew.Cells(newRow, 9).Value = sums(1)
+            wsNew.Cells(newRow, 10).Value = sums(2)
+
+            newRow = newRow + 1
+        Else
+            ' If the value is already in the dictionary, update the sums
+            sums = dict(cell.Value)
+            sums(0) = sums(0) + ws.Cells(cell.Row, "H").Value
+            sums(1) = sums(1) + ws.Cells(cell.Row, "I").Value
+            sums(2) = sums(2) + ws.Cells(cell.Row, "J").Value
+            dict(cell.Value) = sums
+
+            ' Find the row in the Summary sheet that matches the value in column A
+            matchRow = Application.Match(cell.Value, wsNew.Columns(1), 0)
+            If Not IsError(matchRow) Then
+                ' Update the sums in the correct row
+                wsNew.Cells(matchRow, 8).Value = sums(0)
+                wsNew.Cells(matchRow, 9).Value = sums(1)
+                wsNew.Cells(matchRow, 10).Value = sums(2)
+            End If
+        End If
+    Next cell
+
+    ' Set references to sheets
+    Set wsNew = ThisWorkbook.Sheets("Summary")
+    Set ws = ThisWorkbook.Sheets("Sheet1")
+
+    ' Find the last row in both sheets
+    lastRowSummary = wsNew.Cells(wsNew.Rows.Count, "A").End(xlUp).Row
+    lastRowSheet1 = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
+
+    ' Loop through each Product ID in the Summary sheet
+    For i = 2 To lastRowSummary ' Assuming there is a header row in row 1
+        productID = wsNew.Cells(i, "A").Value
+        
+        ' Reset sums
+        sumH = 0
+        sumI = 0
+        sumJ = 0
+
+        ' Loop through each row in Sheet1 to find matching Product ID
+        For j = 2 To lastRowSheet1 ' Assuming there is a header row in row 1
+            If ws.Cells(j, "A").Value = productID Then
+                sumH = sumH + ws.Cells(j, "H").Value
+                sumI = sumI + ws.Cells(j, "I").Value
+                sumJ = sumJ + ws.Cells(j, "J").Value
+            End If
+        Next j
+
+        ' Output the sums in the corresponding row in the Summary sheet
+        wsNew.Cells(i, "H").Value = sumH
+        wsNew.Cells(i, "I").Value = sumI
+        wsNew.Cells(i, "J").Value = sumJ
+    Next i
+    
+End Sub
+
