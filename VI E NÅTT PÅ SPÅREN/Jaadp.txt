@@ -157,12 +157,124 @@ Sub ReorganizeWarehouseData()
         End If
     Next cell
 
+
+
+    ' Set references to sheets
+    Set wsNew = ThisWorkbook.Sheets("Summary")
+    Set ws = ThisWorkbook.Sheets("Sheet1")
+
+    ' Find the last row in both sheets
+    lastRowSummary = wsNew.Cells(wsNew.Rows.Count, "A").End(xlUp).Row
+    lastRowSheet1 = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
+
+    ' Loop through each Product ID in the Summary sheet
+    For i = 2 To lastRowSummary ' Assuming there is a header row in row 1
+        productID = wsNew.Cells(i, "A").Value
+        
+        ' Reset sums
+        sumI = 0
+        sumJ = 0
+        sumK = 0
+
+        ' Loop through each row in Sheet1 to find matching Product ID
+        For j = 2 To lastRowSheet1 ' Assuming there is a header row in row 1
+            If ws.Cells(j, "A").Value = productID Then
+                sumI = sumI + ws.Cells(j, "I").Value
+                sumJ = sumJ + ws.Cells(j, "J").Value
+                sumK = sumK + ws.Cells(j, "K").Value
+            End If
+        Next j
+
+        ' Output the sums in the corresponding row in the Summary sheet
+        wsNew.Cells(i, "I").Value = sumI
+        wsNew.Cells(i, "J").Value = sumJ
+        wsNew.Cells(i, "K").Value = sumK
+    Next i
+    
+    ' Update column deletion
+    wsNew.Columns("A:L").AutoFit
+    ws.Columns("A:M").AutoFit
+
+    For i = 2 To lastRow
+        wsNew.Cells(i, "L").Formula = "=I" & i & "+J" & i & "+K" & i
+    Next i
+
+
+ ' Allt hit funkar bra
+
+
+    Dim found As Boolean
+
+    ' Set references to sheets
+    Set wsNew = ThisWorkbook.Sheets("Summary")
+    Set ws = ThisWorkbook.Sheets("Sheet1")
+
+    ' Find the last row in both sheets
+    lastRowSummary = wsNew.Cells(wsNew.Rows.Count, "A").End(xlUp).Row
+    lastRowSheet1 = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
+
+    ' Loop through each Product ID in the Summary sheet
+    For i = 2 To lastRowSummary ' Assuming there is a header row in row 1
+        productID = wsNew.Cells(i, "A").Value
+        found = False ' Reset found flag for each Product ID
+
+        ' Loop through each row in Sheet1 to find matching Product ID
+        For j = 2 To lastRowSheet1 ' Assuming there is a header row in row 1
+            If ws.Cells(j, "A").Value = productID Then
+                If ws.Cells(j, "I").Value > 0 And _
+                   ws.Cells(j, "J").Value > 0 And _
+                   ws.Cells(j, "K").Value > 0 Then
+                    found = True
+                    Exit For ' Exit loop as soon as a match is found
+                End If
+            End If
+        Next j
+
+        ' Update the Summary sheet with "Yes" or "No"
+        If found Then
+            wsNew.Cells(i, "M").Value = "Yes" ' Adjust column K if needed
+        Else
+            wsNew.Cells(i, "M").Value = "No" ' Adjust column K if needed
+        End If
+    Next i
+
+    wsNew.Cells(1, "M").Value = "Check for all variant stock"
+
+    ' Insert a new column at column B
+    wsNew.Columns("B").Insert Shift:=xlToRight, CopyOrigin:=xlFormatFromLeftOrAbove
+    
+    ' Add header "Brand" to the new column B
+    wsNew.Cells(1, 2).Value = "Brand"
+    
+    ' Find the last row with data in the sheet
+    lastRow = wsNew.Cells(ws.Rows.Count, "A").End(xlUp).Row
+    
+    ' Loop through each row and fill the "Brand" column with "POC"
+    For i = 2 To lastRow
+        ' Check if there's any content in other columns of the row
+        If Application.WorksheetFunction.CountA(ws.Rows(i)) > 1 Then
+            wsNew.Cells(i, 2).Value = "POC"
+        End If
+    Next i
+  
+    
+    lastRow = wsNew.Cells(ws.Rows.Count, "I").End(xlUp).Row
+    
+    For i = 2 To lastRow
+        wsNew.Cells(i, 11).Formula = "=I" & i & "+J" & i & "+K" & i
+    Next i
+
+    ' Color-coding for Summary sheet
+    For i = 2 To lastRow
+        If wsNew.Cells(i, 8).Value > 0 And wsNew.Cells(i, 9).Value > 0 And wsNew.Cells(i, 10).Value > 0 Then
+            wsNew.Range(wsNew.Cells(i, 8), wsNew.Cells(i, 10)).Interior.Color = RGB(144, 238, 144) ' Light green color
+        ElseIf wsNew.Cells(i, 8).Value = 0 Or wsNew.Cells(i, 9).Value = 0 Or wsNew.Cells(i, 10).Value = 0 Then
+            wsNew.Range(wsNew.Cells(i, 8), wsNew.Cells(i, 10)).Interior.Color = RGB(255, 99, 71) ' Red color
+        Else
+            wsNew.Range(wsNew.Cells(i, 8), wsNew.Cells(i, 10)).Interior.ColorIndex = 0
+        End If
+    Next i
+
+    MsgBox "Yoooo boss, I think I'm becoming a hacker just like big Don Ondrej, I think he would be proud"
 End Sub
-
-
-
-
-
-
-
 
