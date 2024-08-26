@@ -279,7 +279,12 @@ Sub ReorganizeWarehouseData()
         End If
     Next i
 
-        ws.Cells(1, "O").Value = "Tags"
+        wsNew.Cells(1, "O").Value = "Tags"
+
+    wsNew.Cells.EntireColumn.AutoFit
+    wsNew.Cells.EntireRow.AutoFit
+    ws.Cells.EntireColumn.AutoFit
+    ws.Cells.EntireRow.AutoFit
 
         Application.ScreenUpdating = True
 
