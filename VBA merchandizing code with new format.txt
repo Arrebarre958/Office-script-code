@@ -262,7 +262,7 @@ Sub ReorganizeWarehouseData()
     Next i
   
     
-    lastRow = wsNew.Cells(ws.Rows.Count, "I").End(xlUp).Row
+    lastRow = ws.Cells(ws.Rows.Count, "I").End(xlUp).Row
     
     For i = 2 To lastRow
         ws.Cells(i, 12).Formula = "=I" & i & "+J" & i & "+K" & i
