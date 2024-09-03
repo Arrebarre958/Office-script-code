@@ -1,0 +1,52 @@
+import os
+import os
+import pandas as pd
+import uuid
+ 
+def rename_images(folder_path, excel_file):
+    # Read the Excel file
+    df = pd.read_excel(excel_file, header=None)
+ 
+    # Ensure the folder path exists
+    if not os.path.exists(folder_path):
+        print(f"The folder path {folder_path} does not exist.")
+        return
+ 
+    # Get the list of image files in the folder
+    image_files = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))]
+ 
+    # Sort the files to ensure they are in the correct order
+    image_files.sort()
+ 
+    # Temporarily rename all images to avoid conflicts
+    temp_names = []
+    for i, image_file in enumerate(image_files):
+        temp_name = f"temp_{uuid.uuid4().hex}.png"
+        temp_file_path = os.path.join(folder_path, temp_name)
+        old_file_path = os.path.join(folder_path, image_file)
+        os.rename(old_file_path, temp_file_path)
+        temp_names.append(temp_file_path)
+        print(f"Temporarily renamed '{image_file}' to '{temp_name}'")
+ 
+    # Rename the images to their final names
+    for i, temp_file_path in enumerate(temp_names):
+        if i >= len(df):
+            break
+        new_name = df.iloc[i, 0]
+        _, ext = os.path.splitext(temp_file_path)
+        new_file_path = os.path.join(folder_path, f"{new_name}{ext}")
+        
+        # Add a unique suffix if the file already exists
+        unique_file_path = new_file_path
+        counter = 1
+        while os.path.exists(unique_file_path):
+            unique_file_path = os.path.join(folder_path, f"{new_name}_{counter}{ext}")
+            counter += 1
+        
+        os.rename(temp_file_path, unique_file_path)
+        print(f"Renamed '{temp_file_path}' to '{unique_file_path}'")
+ 
+# Example usage
+folder_path = r"C:\Users\arrer\Desktop\Pocito goggles rename project"  # Use raw string for Windows path
+excel_file = r"C:\Users\arrer\Desktop\LB images FW 24.xlsx"   # Use raw string for Windows path
+rename_images(folder_path, excel_file)
