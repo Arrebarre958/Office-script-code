@@ -246,7 +246,7 @@ function main(workbook: ExcelScript.Workbook) {
 	selectedSheet.getRange("N2").getExtendedRange(ExcelScript.KeyboardDirection.down).copyFrom(selectedSheet.getRange("N2").getExtendedRange(ExcelScript.KeyboardDirection.down), ExcelScript.RangeCopyType.values, false, false);
 
 
-	selectedSheet.getRange("O2").setFormulaLocal("=M2 & CHAR(10) & \"Sale EU\" & CHAR(10) & \"Sale EU / Sale\"");
+	selectedSheet.getRange("O2").setFormulaLocal("=N2 & CHAR(10) & \"Sale EU\" & CHAR(10) & \"Sale EU / Sale\"");
 	// Paste to table table1 cell in row 0 on column Category from extended range obtained by extending down from range M2 on selectedSheet
 	table1.getColumn("Category").getRangeBetweenHeaderAndTotal().getRow(0).copyFrom(selectedSheet.getRange("O2").getExtendedRange(ExcelScript.KeyboardDirection.down), ExcelScript.RangeCopyType.values, false, false);
 	// Delete range L:M on selectedSheet
