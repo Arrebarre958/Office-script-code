@@ -57,8 +57,11 @@ function main(workbook: ExcelScript.Workbook) {
   sheet3.getRange("C:C").insert(ExcelScript.InsertShiftDirection.right);
   // Set range C1:C2 on sheet3
   sheet3.getRange("C1:C2").setFormulasLocal([["Fullish"], ["=B2&E2"]]);
-  // Set range I2 on sheet3
   sheet3.getRange("I2").setFormulaLocal("=XLOOKUP([@Fullish];Sheet2!C:C;Sheet2!O:O;\"Not found\")")
+
+
+
+
   sheet3.getRange("I2").getExtendedRange(ExcelScript.KeyboardDirection.down).copyFrom(sheet3.getRange("I2").getExtendedRange(ExcelScript.KeyboardDirection.down), ExcelScript.RangeCopyType.values, false, false);
   // Paste to extended range obtained by extending down from range I2 on selectedSheet from extended range obtained by extending down from range I2 on selectedSheet
   sheet3.getRange("I2").getExtendedRange(ExcelScript.KeyboardDirection.down).copyFrom(sheet3.getRange("I2").getExtendedRange(ExcelScript.KeyboardDirection.down), ExcelScript.RangeCopyType.values, false, false);
@@ -481,6 +484,8 @@ function main(workbook: ExcelScript.Workbook) {
 
 
 
+
+
  // DELETE BELOW HERE FOR NO DELETION OF SHEETS (MAZzZzZzZIMUM CUSTOMIZABILITY)
 
 
@@ -492,6 +497,6 @@ function main(workbook: ExcelScript.Workbook) {
   campaign_upload_ready.setTabColor("#8ED973");
   upload_ready_Category_and_merch.setTabColor("#8ED973");
 
-  table16.getSort().apply([{ key: 10, descending: true }]);
+  table16.getSort().apply([{ key: 10, ascending: true }]);
 
 }

@@ -1,0 +1,501 @@
+function main(workbook: ExcelScript.Workbook) {
+  let sheet3 = workbook.getWorksheet("Sheet3");
+  // Set range A1:L1 on sheet3
+  sheet3.getRange("A1:L1").setValues([["Product name", "Product number", "Variant", "Variant number", "Collection", "Folder", "Campaign type", "Value", "Start Date Time", "Stop Date Time", "Sale", "News"]]);
+  let selectedSheet = workbook.getActiveWorksheet();
+
+  // Add a new table at range A1:CD99999 on selectedSheet
+  let newTable = workbook.addTable(selectedSheet.getRange("A1:CD25000"), true);
+  // Table style applied on table newTable
+  newTable.setPredefinedTableStyle("TableStyleMedium7");
+  let sheet2 = workbook.getWorksheet("Sheet2");
+  // Add a new table at range A1:N99999 on sheet2
+  let newTable_1 = workbook.addTable(sheet2.getRange("A1:N25000"), true);
+  // Table style applied on table newTable_1
+  newTable_1.setPredefinedTableStyle("TableStyleMedium7");
+  // Insert at range D:D on sheet2, move existing cells right
+  sheet2.getRange("D:D").insert(ExcelScript.InsertShiftDirection.right);
+  // Set range D1:D2 on sheet2
+  sheet2.getRange("D1:D2").setFormulasLocal([["Duplication deletion"], ["=A2&C2"]]);
+  // Set fill color to #ffff00 for range D1 on sheet2
+  sheet2.getRange("D1").getFormat().getFill().setColor("#ffff00");
+  // Set font color to "#FF0000" for range D1 on sheet2
+  sheet2.getRange("D1").getFormat().getFont().setColor("#FF0000");
+  // Paste to extended range obtained by extending down from range D2 on sheet2 from extended range obtained by extending down from range D2 on sheet2
+  sheet2.getRange("D2").getExtendedRange(ExcelScript.KeyboardDirection.down).copyFrom(sheet2.getRange("D2").getExtendedRange(ExcelScript.KeyboardDirection.down), ExcelScript.RangeCopyType.values, false, false);
+  // Remove duplicates from table newTable_1
+  newTable_1.getRange().removeDuplicates([3], true);
+  // Delete range D:D on sheet2
+  sheet2.getRange("D:D").delete(ExcelScript.DeleteShiftDirection.left);
+
+  // Insert at range C:C on sheet2, move existing cells right
+  sheet2.getRange("C:C").insert(ExcelScript.InsertShiftDirection.right);
+  // Set range C1:C2 on sheet2
+  sheet2.getRange("C1:C2").setFormulasLocal([["Without sizes"], ["=LEFT(B2;11)"]]);
+  // Set fill color to #ffff00 for range C1 on sheet2
+  sheet2.getRange("C1").getFormat().getFill().setColor("#ffff00");
+  // Set font color to "#FF0000" for range C1 on sheet2
+  sheet2.getRange("C1").getFormat().getFont().setColor("#FF0000");
+  // Paste to extended range obtained by extending down from range C2 on sheet2 from extended range obtained by extending down from range C2 on sheet2
+  sheet2.getRange("C2").getExtendedRange(ExcelScript.KeyboardDirection.down).copyFrom(sheet2.getRange("C2").getExtendedRange(ExcelScript.KeyboardDirection.down), ExcelScript.RangeCopyType.values, false, false);
+  // Insert at range C:C on selectedSheet, move existing cells right
+  selectedSheet.getRange("C:C").insert(ExcelScript.InsertShiftDirection.right);
+  // Set range C1:C2 on selectedSheet
+  selectedSheet.getRange("C1:C2").setFormulasLocal([["Without size"], ["=B2&I2"]]);
+
+  // Paste to extended range obtained by extending down from range C2 on selectedSheet from extended range obtained by extending down from range C2 on selectedSheet
+  selectedSheet.getRange("C2").getExtendedRange(ExcelScript.KeyboardDirection.down).copyFrom(selectedSheet.getRange("C2").getExtendedRange(ExcelScript.KeyboardDirection.down), ExcelScript.RangeCopyType.values, false, false);
+  // Set range A2 on sheet3
+  sheet3.getRange("A2").setValue("");
+  // Add a new table at range A1:L99999 on sheet3
+  let newTable_3 = workbook.addTable(sheet3.getRange("A1:L25000"), true);
+  // Table style applied on table newTable_3
+  newTable_3.setPredefinedTableStyle("TableStyleMedium7");
+  // Set range A2:G2 on sheet3
+  sheet3.getRange("A2:G2").setFormulasLocal([["=XLOOKUP(Table2[@[Without sizes]];Sheet1!C:C;Sheet1!E:E;\"Not found\")", "=XLOOKUP(Table2[@[Without sizes]];Sheet1!C:C;Sheet1!B:B;\"Not found\")", "=XLOOKUP(Table2[@[Without sizes]];Sheet1!C:C;Sheet1!G:G;\"Not found\")", "=XLOOKUP(Table2[@[Without sizes]];Sheet1!C:C;Sheet1!I:I;\"Not found\")", "=XLOOKUP(Table2[@[Without sizes]];Sheet1!C:C;Sheet1!AD:AD;\"Not found\")", "=XLOOKUP(Table2[@[Without sizes]];Sheet1!C:C;Sheet1!AC:AC;\"Not found\")", "percentage"]]);
+  // Insert at range C:C on sheet3, move existing cells right
+  sheet3.getRange("C:C").insert(ExcelScript.InsertShiftDirection.right);
+  // Set range C1:C2 on sheet3
+  sheet3.getRange("C1:C2").setFormulasLocal([["Fullish"], ["=B2&E2"]]);
+  sheet3.getRange("I2").setFormulaLocal("=XLOOKUP([@Fullish];Sheet2!C:C;Sheet2!O:O;\"Not found\")")
+
+
+
+
+  sheet3.getRange("I2").getExtendedRange(ExcelScript.KeyboardDirection.down).copyFrom(sheet3.getRange("I2").getExtendedRange(ExcelScript.KeyboardDirection.down), ExcelScript.RangeCopyType.values, false, false);
+  // Paste to extended range obtained by extending down from range I2 on selectedSheet from extended range obtained by extending down from range I2 on selectedSheet
+  sheet3.getRange("I2").getExtendedRange(ExcelScript.KeyboardDirection.down).copyFrom(sheet3.getRange("I2").getExtendedRange(ExcelScript.KeyboardDirection.down), ExcelScript.RangeCopyType.values, false, false);
+  // Delete range C:C on selectedSheet
+  sheet3.getRange("C:C").delete(ExcelScript.DeleteShiftDirection.left);
+  // Paste to extended range obtained by extending down from range G3 on sheet3 from table newTable_3 cell in row 0 on column Campaign type
+  sheet3.getRange("G3").getExtendedRange(ExcelScript.KeyboardDirection.down).copyFrom(newTable_3.getColumn("Campaign type").getRangeBetweenHeaderAndTotal().getRow(0), ExcelScript.RangeCopyType.all, false, false);
+
+
+  // Set range K2:L2 on sheet3
+  sheet3.getRange("K2:L2").setValues([["Yes", "No"]]);
+  // Paste to extended range obtained by extending right, then down from range K3 on sheet3 from table newTable_3 sub-range with top left corner at row 0 on column Sale
+  sheet3.getRange("K3").getExtendedRange(ExcelScript.KeyboardDirection.right).getExtendedRange(ExcelScript.KeyboardDirection.down).copyFrom(newTable_3.getColumn("Sale").getRangeBetweenHeaderAndTotal().getRow(0).getResizedRange(0, 1), ExcelScript.RangeCopyType.all, false, false);
+  // Paste to extended range obtained by extending right, right, right, then down from range A2 on sheet3 from extended range obtained by extending right, right, right, then down from range A2 on sheet3
+  sheet3.getRange("A2").getExtendedRange(ExcelScript.KeyboardDirection.right).getExtendedRange(ExcelScript.KeyboardDirection.right).getExtendedRange(ExcelScript.KeyboardDirection.right).getExtendedRange(ExcelScript.KeyboardDirection.down).copyFrom(sheet3.getRange("A2").getExtendedRange(ExcelScript.KeyboardDirection.right).getExtendedRange(ExcelScript.KeyboardDirection.right).getExtendedRange(ExcelScript.KeyboardDirection.right).getExtendedRange(ExcelScript.KeyboardDirection.down), ExcelScript.RangeCopyType.values, false, false);
+  // Replace all "% Discount" with "" on range H:H on sheet3
+  sheet3.getRange("H:H").replaceAll("% Discount", "", { completeMatch: false, matchCase: false });
+  // Replace all "Cycling /" with "" on range F:F on sheet3
+  sheet3.getRange("F:F").replaceAll("Cycling / ", "", { completeMatch: false, matchCase: false });
+  // Replace all "Snow /" with "" on range F:F on sheet3
+  sheet3.getRange("F:F").replaceAll("Snow / ", "", { completeMatch: false, matchCase: false });
+  // Rename worksheet to "Campaign upload ready"
+  sheet3.setName("Campaign upload ready");
+  // Delete worksheet sheet2
+  sheet2.delete();
+
+
+  selectedSheet
+  // Get the used range in the worksheet (includes data with headers)
+  let usedRange: ExcelScript.Range = selectedSheet.getUsedRange();
+
+  // Get the first row (header row) of the used range
+  let headerRange: ExcelScript.Range = usedRange.getRow(0);
+
+  // Get the values of the headers in the first row
+  let headers: string[] = headerRange.getValues()[0] as string[];
+
+  // List of headers to delete
+  let headersToDelete: string[] = [
+    "Without size",
+    "Product Status - Not possible to import",
+    "Variant Status - Not possible to import",
+    "Variant Internal Name",
+    "Variant ID",
+    "Size Chart",
+    "Preorder",
+    "Cost/Pcs",
+    "Cost currency",
+    "Weight",
+    "Folder",
+    "Measurement Chart",
+    "Size Comment",
+    "Length",
+    "Width",
+    "Height",
+    "Dimensions Unit",
+    "Weight per size",
+    "UPC",
+    "Internal Comment",
+    "Harmonization Code",
+    "Harmonization Code Description",
+    "Display Status - Not possible to import",
+    "Display Comment",
+    "Supplier Name",
+    "Country of Origin",
+    "Country ISO2",
+    "Retail - AUD",
+    "Retail - CAD",
+    "Retail - CHF",
+    "Retail - CZK",
+    "Retail - DKK",
+    "Retail - EUR",
+    "Retail - GBP",
+    "Retail - JPY",
+    "Retail - NOK",
+    "Retail - NZD",
+    "Retail - PLN",
+    "Retail - SEK",
+    "Retail - USD",
+    "Attribute - Showroom Color Swatch",
+    "Attribute - Showroom Custom Tag",
+    "Attribute - External engine tax code Prod Avalara (North America Tax) tax code",
+    "Attribute - Fit type Fit type",
+    "Attribute - Google Merchant g:color",
+    "Attribute - Google Merchant g:material",
+    "Attribute - Google Merchant g:pattern",
+    "Attribute - Google Merchant g:item_group_id",
+    "Attribute - Related products title",
+    "Total COG",
+    "AVG COG",
+    "Attribute - Sort order Sort order",
+    "EAN",
+    "Size Chart",
+    "Size",
+    "Canonical category",
+    "Measurement Chart",
+    "Short Description",
+    "Description",
+    "Meta Title",
+    "Meta Description",
+    "Meta Keywords",
+    "URI",
+    "Tax Group",
+    "Attribute - Badge",
+    "Attribute - Color",
+    "Attribute - Fit",
+    "Attribute - Google Merchant g:category",
+    "Attribute - Google Merchant g:product_type",
+    "Attribute - Lens",
+    "Attribute - Lens guide type",
+    "Attribute - Product benefits Product benefits",
+    "Attribute - Size guide type",
+    "Attribute - Technical Details Technical detail 1",
+    "Attribute - Technical Details Technical detail 2",
+    "Attribute - Technical Details Technical detail 3",
+    "Attribute - Technical Details Technical detail 4",
+    "Attribute - Technical Details Technical detail 5",
+    "Attribute - Technical Details Technical detail 6",
+    "Attribute - Technical Details Technical detail 7",
+    "Attribute - Technical Details Technical detail 8",
+    "Attribute - Technical Details Technical detail 9",
+    "Attribute - Technical Details Technical detail 10",
+    "Attribute - Technical Details Technical detail 11",
+    "Attribute - Technical Details Technical detail 12",
+    "Netherlands",
+    "Sidney",
+  ];
+
+  // Get the total number of rows in the sheet (used range)
+  let rowCount: number = usedRange.getRowCount();
+
+  // Loop through the headers array from the end to the beginning to avoid index shifting issues
+  for (let i = headers.length - 1; i >= 0; i--) {
+    let header = headers[i];
+
+    // If the current header is in the headersToDelete array, delete the column
+    if (headersToDelete.includes(header)) {
+      // Delete the column at the current index (i)
+      selectedSheet.getRangeByIndexes(0, i, rowCount, 1)
+        .delete(ExcelScript.DeleteShiftDirection.left);
+    }
+  }
+
+  // Re-fetch the used range after column deletions
+  usedRange = selectedSheet.getUsedRange();
+  headerRange = usedRange.getRow(0);
+  headers = headerRange.getValues()[0] as string[];
+
+
+
+  // Insert at range C:C on selectedSheet, move existing cells right
+  selectedSheet.getRange("C:C").insert(ExcelScript.InsertShiftDirection.right);
+  // Set range C1:C2 on selectedSheet
+  selectedSheet.getRange("C1:C2").setFormulasLocal([["Fullish"], ["=B2&G2"]]);
+  // Paste to extended range obtained by extending down from range C2 on selectedSheet from extended range obtained by extending down from range C2 on selectedSheet
+  selectedSheet.getRange("C2").getExtendedRange(ExcelScript.KeyboardDirection.down).copyFrom(selectedSheet.getRange("C2").getExtendedRange(ExcelScript.KeyboardDirection.down), ExcelScript.RangeCopyType.values, false, false);
+  campaign_upload_ready = workbook.getWorksheet("Campaign upload ready");
+  // Insert at range C:C on campaign_upload_ready, move existing cells right
+  campaign_upload_ready.getRange("C:C").insert(ExcelScript.InsertShiftDirection.right);
+  // Set range C1:C2 on campaign_upload_ready
+  campaign_upload_ready.getRange("C1:C2").setFormulasLocal([["Fullish"], ["=B2&E2"]]);
+  // Paste to extended range obtained by extending down from range C2 on campaign_upload_ready from extended range obtained by extending down from range C2 on campaign_upload_ready
+  campaign_upload_ready.getRange("C2").getExtendedRange(ExcelScript.KeyboardDirection.down).copyFrom(campaign_upload_ready.getRange("C2").getExtendedRange(ExcelScript.KeyboardDirection.down), ExcelScript.RangeCopyType.values, false, false);
+  // Set range I1:I2 on selectedSheet
+  selectedSheet.getRange("N2").setFormulaLocal("=IF(COUNTIF('Campaign upload ready'!C:C;C2) > 0;\"Yes\";\"No\")");
+  let table1 = workbook.getTable("Table1");
+
+  selectedSheet.getRange
+  selectedSheet.getRange("N2").getExtendedRange(ExcelScript.KeyboardDirection.down).copyFrom(selectedSheet.getRange("N2").getExtendedRange(ExcelScript.KeyboardDirection.down), ExcelScript.RangeCopyType.values, false, false);
+  // Delete range C:C on selectedSheet
+  selectedSheet.getRange("C:C").delete(ExcelScript.DeleteShiftDirection.left);
+  campaign_upload_ready = workbook.getWorksheet("Campaign upload ready");
+  // Delete range C:C on campaign_upload_ready
+  campaign_upload_ready.getRange("C:C").delete(ExcelScript.DeleteShiftDirection.left);
+
+
+  // Set range L1:M2 on selectedSheet
+  selectedSheet.getRange("N1:O2").setFormulasLocal([
+    ["Category assignment", "Category assignment 2"],
+    ["=TEXTJOIN(CHAR(10); TRUE; IF(ISNUMBER(SEARCH(\"Mountain bike\"; J2)); \"Sale NA / Sale / Mountain Bike\"; \"\"); IF(ISNUMBER(SEARCH(\"Road\"; J2)); \"Sale NA / Sale / Road-Gravel Cycling\"; \"\"); IF(ISNUMBER(SEARCH(\"Snow\"; J2)); \"Sale NA / Sale / Snow\"; \"\"))", null]
+  ]);
+
+
+  selectedSheet.getRange("N2").getExtendedRange(ExcelScript.KeyboardDirection.down).copyFrom(selectedSheet.getRange("N2").getExtendedRange(ExcelScript.KeyboardDirection.down), ExcelScript.RangeCopyType.values, false, false);
+
+
+  selectedSheet.getRange("O2").setFormulaLocal("=N2 & CHAR(10) & \"Sale NA\" & CHAR(10) & \"Sale NA / Sale\"");
+  // Paste to table table1 cell in row 0 on column Category from extended range obtained by extending down from range M2 on selectedSheet
+  table1.getColumn("Category").getRangeBetweenHeaderAndTotal().getRow(0).copyFrom(selectedSheet.getRange("O2").getExtendedRange(ExcelScript.KeyboardDirection.down), ExcelScript.RangeCopyType.values, false, false);
+  // Delete range L:M on selectedSheet
+  selectedSheet.getRange("N:O").delete(ExcelScript.DeleteShiftDirection.left);
+  campaign_upload_ready
+  // Insert at range C:C on campaign_upload_ready, move existing cells right
+  campaign_upload_ready.getRange("C:C").insert(ExcelScript.InsertShiftDirection.right);
+  // Set range C2 on campaign_upload_ready
+  campaign_upload_ready.getRange("C2").setFormulaLocal("=B2&E2");
+  // Paste to extended range obtained by extending down from range C2 on campaign_upload_ready from extended range obtained by extending down from range C2 on campaign_upload_ready
+  sheet3.getRange("C2").getExtendedRange(ExcelScript.KeyboardDirection.down).copyFrom(campaign_upload_ready.getRange("C2").getExtendedRange(ExcelScript.KeyboardDirection.down), ExcelScript.RangeCopyType.values, false, false);
+  // Set range C1 on campaign_upload_ready
+  sheet3.getRange("C1").setValue("Deletion selection");
+  newTable_3.getRange().removeDuplicates([2], true);
+  sheet3.getRange("C:C").delete(ExcelScript.DeleteShiftDirection.left);
+
+
+
+
+  // Insert at range C:C on selectedSheet, move existing cells right
+  selectedSheet.getRange("C:C").insert(ExcelScript.InsertShiftDirection.right);
+  // Set range C1:C2 on selectedSheet
+  selectedSheet.getRange("C1:C2").setFormulasLocal([["Duplicate deleteion"], ["=B2&F2"]]);
+  table1.getRange().removeDuplicates([2], true);
+
+  selectedSheet.getRange("C:C").delete(ExcelScript.DeleteShiftDirection.left);
+
+
+
+
+  // Get the active worksheet
+  let sheet = workbook.getActiveWorksheet();
+
+  // Find the last row in the sheet to determine the range
+  let usedRange1 = sheet.getUsedRange();
+  if (!usedRange1) {
+    console.log("No used range found.");
+    return;
+  }
+  let rowCount1 = usedRange1.getRowCount();
+
+  // Loop through the rows in reverse order to avoid shifting issues when deleting rows
+  for (let i = rowCount1 - 1; i >= 0; i--) {
+    // Access the value in column M (Column1) using getCell (column 12 is "M")
+    let cellValue = sheet.getCell(i, 12).getValue();
+
+    if (cellValue === "No") {
+      // Delete the entire row if "No" is found in column M
+      sheet.getCell(i, 12).getEntireRow().delete(ExcelScript.DeleteShiftDirection.up);
+    }
+  }
+
+
+
+
+
+
+  // Sort on table: table1 column index: '7'
+  table1.getSort().apply([{ key: 7, descending: true }]);
+  // Add a new worksheet
+  let newsheet2 = workbook.addWorksheet();
+  // Paste to range A1 on sheet2 from range A1:M99999 on selectedSheet
+  newsheet2.getRange("A1").copyFrom(selectedSheet.getRange("A1:M25000"), ExcelScript.RangeCopyType.all, false, false);
+
+
+  let table15 = workbook.getTable("Table15");
+  table15.getSort().apply([{ key: 7, descending: true }]);
+
+
+  // Get the used range of the worksheet
+  let range = newsheet2.getUsedRange();
+
+  // Get all the values in the used range
+  let values = range.getValues();
+
+  // Loop through each cell in the range
+  for (let row = 0; row < values.length; row++) {
+    for (let col = 0; col < values[row].length; col++) {
+      let value = values[row][col];
+
+      // Check if the cell contains a string that represents a number
+      if (typeof value === "string" && !isNaN(Number(value))) {
+        // Convert the text to a number and update the cell
+        values[row][col] = Number(value);
+      }
+    }
+  }
+
+  // Set the converted values back to the range
+  range.setValues(values);
+
+
+  // test
+
+  // Paste to range A1 on sheet2 from range A1:M99999 on selectedSheet
+  newsheet2.getRange("N1:N2").setFormulasLocal([["Sumif"], ["=SUMIF(A:A;A2;H:H)"]]);
+
+
+  // Get the used range of the worksheet
+  let range3 = newsheet2.getUsedRange();
+
+  // Get all the values in the used range
+  let values3 = range3.getValues();
+
+  // Loop through each cell in the range
+  for (let row = 0; row < values3.length; row++) {
+    for (let col = 0; col < values3[row].length; col++) {
+      let value3 = values3[row][col];
+
+      // Check if the cell contains a string that represents a number
+      if (typeof value3 === "string" && !isNaN(Number(value3))) {
+        // Convert the text to a number and update the cell
+        values3[row][col] = Number(value3);
+      }
+    }
+  }
+
+  // Set the converted values back to the range
+  range3.setValues(values3);
+
+
+
+  //Fortsätt här
+
+
+
+  // Sort on table: newTable column index: '13'
+  table15.getSort().apply([{ key: 13, ascending: false }]);
+  // Remove duplicates from table newTable
+  table15.getRange().removeDuplicates([0], true);
+  // Set range L2:L3 on sheet2
+  newsheet2.getRange("L2:L3").setValues([["115"], ["116"]]);
+  // Auto fill range
+  newsheet2.getRange("L2:L3").autoFill("L2:L5000", ExcelScript.AutoFillType.fillDefault);
+  // Set range L22 on selectedSheet
+
+
+
+
+  // Test
+
+
+
+  // Get the used range of the worksheet
+  let range1 = selectedSheet.getUsedRange();
+
+  // Get all the values in the used range
+  let values1 = range1.getValues();
+
+  // Loop through each cell in the range
+  for (let row = 0; row < values1.length; row++) {
+    for (let col = 0; col < values1[row].length; col++) {
+      let value1 = values1[row][col];
+
+      // Check if the cell contains a string that represents a number
+      if (typeof value1 === "string" && !isNaN(Number(value1))) {
+        // Convert the text to a number and update the cell
+        values1[row][col] = Number(value1);
+      }
+    }
+  }
+
+
+
+  // Update the values in the worksheet
+  range1.setValues(values1);
+
+
+  selectedSheet.getRange("L2").setFormulaLocal("=INDEX(Sheet2!L:L;MATCH(A2;Sheet2!A:A; 0))");
+  // Paste to range L3:L99999 on selectedSheet from table table1 cell in row 0 on column Tags
+  selectedSheet.getRange("L3:L25000").copyFrom(table1.getColumn("Tags").getRangeBetweenHeaderAndTotal().getRow(0), ExcelScript.RangeCopyType.all, false, false);
+  // Apply checked items filter on table table1 column Column1
+
+
+
+
+
+  // Rename worksheet to "For merchandizing"
+  newsheet2.setName("For merchandizing");
+  // Rename worksheet to "Category and merchandizing"
+  selectedSheet.setName("Category and merchandizing");
+  // Add a new worksheet
+  let newsheet3 = workbook.addWorksheet();
+  let category_and_merchandizing = workbook.getWorksheet("Category and merchandizing");
+  // Paste to range A1 on sheet3 from range A1:M99999 on category_and_merchandizing
+  newsheet3.getRange("A1").copyFrom(category_and_merchandizing.getRange("A1:M25000"), ExcelScript.RangeCopyType.all, false, false);
+
+
+
+  // Get the used range of the worksheet
+  let range2 = newsheet3.getUsedRange();
+
+  // Get all the values in the used range
+  let values2 = range2.getValues();
+
+  // Loop through each cell in the range
+  for (let row = 0; row < values2.length; row++) {
+    for (let col = 0; col < values2[row].length; col++) {
+      let value2 = values2[row][col];
+
+      // Check if the cell contains a string that represents a number
+      if (typeof value2 === "string" && !isNaN(Number(value2))) {
+        // Convert the text to a number and update the cell
+        values2[row][col] = Number(value2);
+      }
+    }
+  }
+
+  // Update the values in the worksheet
+  range2.setValues(values2);
+
+  // Rename worksheet to "Upload ready Category and merch"
+  newsheet3.setName("Upload ready Category and merch");
+  let upload_ready_Category_and_merch = workbook.getWorksheet("Upload ready Category and merch");
+  // Add a new table at extended range obtained by extending right, down, then down from range A1 on upload_ready_Category_and_merch
+  let table16 = workbook.getTable("Table16");
+  // Table style applied on tabletable16
+  table16.setPredefinedTableStyle("TableStyleMedium7");
+  // Insert column at index 4 into table table16
+  table16.addColumn(4);
+  // Set range E1:E2 on upload_ready_Category_and_merch
+  upload_ready_Category_and_merch.getRange("E1:E2").setFormulasLocal([["Duplicate deletion"], ["=B2&G2"]]);
+  // Paste to extended range obtained by extending down from range E2 on upload_ready_Category_and_merch from extended range obtained by extending down from range E2 on upload_ready_Category_and_merch
+  upload_ready_Category_and_merch.getRange("E2").getExtendedRange(ExcelScript.KeyboardDirection.down).copyFrom(upload_ready_Category_and_merch.getRange("E2").getExtendedRange(ExcelScript.KeyboardDirection.down), ExcelScript.RangeCopyType.values, false, false);
+  // Remove duplicates from table table16
+  table16.getRange().removeDuplicates([4], true);
+  // Delete range E:E on upload_ready_Category_and_merch
+  upload_ready_Category_and_merch.getRange("E:E").delete(ExcelScript.DeleteShiftDirection.left);
+  // Delete range M:M on upload_ready_Category_and_merch
+  upload_ready_Category_and_merch.getRange("M:M").delete(ExcelScript.DeleteShiftDirection.left);
+  // Delete range H:H on upload_ready_Category_and_merch
+  upload_ready_Category_and_merch.getRange("H:H").delete(ExcelScript.DeleteShiftDirection.left);
+
+
+
+
+ // DELETE BELOW HERE FOR NO DELETION OF SHEETS (MAZzZzZzZIMUM CUSTOMIZABILITY)
+
+
+  let for_merchandizing = workbook.getWorksheet("For merchandizing");
+
+  campaign_upload_ready.setPosition(2);
+  category_and_merchandizing.delete();
+  for_merchandizing.delete();
+  campaign_upload_ready.setTabColor("#8ED973");
+  upload_ready_Category_and_merch.setTabColor("#8ED973");
+
+  table16.getSort().apply([{ key: 10, ascending: true }]);
+
+}
