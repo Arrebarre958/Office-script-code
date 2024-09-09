@@ -265,13 +265,13 @@ function main(workbook: ExcelScript.Workbook) {
 
 
 
-	// Insert at range C:C on selectedSheet, move existing cells right
-	selectedSheet.getRange("C:C").insert(ExcelScript.InsertShiftDirection.right);
-	// Set range C1:C2 on selectedSheet
-	selectedSheet.getRange("C1:C2").setFormulasLocal([["Duplicate deleteion"],["=B2&F2"]]);
-	table1.getRange().removeDuplicates([2], true);
+  // Insert at range C:C on selectedSheet, move existing cells right
+  selectedSheet.getRange("C:C").insert(ExcelScript.InsertShiftDirection.right);
+  // Set range C1:C2 on selectedSheet
+  selectedSheet.getRange("C1:C2").setFormulasLocal([["Duplicate deleteion"], ["=B2&F2"]]);
+  table1.getRange().removeDuplicates([2], true);
 
-   selectedSheet.getRange("C:C").delete(ExcelScript.DeleteShiftDirection.left);
+  selectedSheet.getRange("C:C").delete(ExcelScript.DeleteShiftDirection.left);
 
 
 
@@ -338,7 +338,7 @@ function main(workbook: ExcelScript.Workbook) {
   range.setValues(values);
 
 
- // test
+  // test
 
   // Paste to range A1 on sheet2 from range A1:M99999 on selectedSheet
   newsheet2.getRange("N1:N2").setFormulasLocal([["Sumif"], ["=SUMIF(A:A;A2;H:H)"]]);
@@ -368,7 +368,7 @@ function main(workbook: ExcelScript.Workbook) {
 
 
 
- //Fortsätt här
+  //Fortsätt här
 
 
 
@@ -385,7 +385,7 @@ function main(workbook: ExcelScript.Workbook) {
 
 
 
- // Test
+  // Test
 
 
 
@@ -480,5 +480,18 @@ function main(workbook: ExcelScript.Workbook) {
   upload_ready_Category_and_merch.getRange("H:H").delete(ExcelScript.DeleteShiftDirection.left);
 
 
+
+ // DELETE BELOW HERE FOR NO DELETION OF SHEETS (MAZzZzZzZIMUM CUSTOMIZABILITY)
+
+
+  let for_merchandizing = workbook.getWorksheet("For merchandizing");
+
+  campaign_upload_ready.setPosition(2);
+  category_and_merchandizing.delete();
+  for_merchandizing.delete();
+  campaign_upload_ready.setTabColor("#8ED973");
+  upload_ready_Category_and_merch.setTabColor("#8ED973");
+
+  table16.getSort().apply([{ key: 10, descending: true }]);
 
 }
