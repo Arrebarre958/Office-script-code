@@ -57,7 +57,7 @@ function main(workbook: ExcelScript.Workbook) {
   sheet3.getRange("C:C").insert(ExcelScript.InsertShiftDirection.right);
   // Set range C1:C2 on sheet3
   sheet3.getRange("C1:C2").setFormulasLocal([["Fullish"], ["=B2&E2"]]);
-  sheet3.getRange("I2").setFormulaLocal("=XLOOKUP([@Fullish];Sheet2!C:C;Sheet2!O:O;\"Not found\")")
+  sheet3.getRange("I2").setFormulaLocal("=XLOOKUP([@Fullish];Sheet2!B:B;Sheet2!N:N;\"Not found\")")
 
 
 
