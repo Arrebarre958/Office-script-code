@@ -1,0 +1,34 @@
+Sub ModifyMultipleCells()
+    Dim lastRow As Long
+    Dim currentRow As Long
+    Dim baseValue As String
+    Dim i As Integer
+    
+    ' Find the last non-empty row in column A
+    lastRow = Cells(Rows.Count, "A").End(xlUp).Row
+    
+    ' Start from the first row
+    currentRow = 1
+    
+    ' Loop through each non-empty cell in column A
+    Do While currentRow <= lastRow
+        ' Step 1: Get the value from the current row in column A and append " 1"
+        baseValue = Range("A" & currentRow).Value
+        Range("B" & currentRow).Value = baseValue & " 1"
+        
+        ' Step 2: Insert three rows below the current row
+        Rows(currentRow + 1 & ":" & currentRow + 3).Insert Shift:=xlDown, CopyOrigin:=xlFormatFromLeftOrAbove
+        
+        ' Step 3 & 4: Copy the value from the current cell to the newly created rows and append " 2", " 3", " 4"
+        For i = 1 To 3
+            Range("A" & currentRow + i).Value = baseValue
+            Range("B" & currentRow + i).Value = baseValue & " " & (i + 1)
+        Next i
+        
+        ' Move to the next set of rows (skip the 3 newly added rows)
+        currentRow = currentRow + 4
+        
+        ' Update the last row to reflect newly inserted rows
+        lastRow = lastRow + 3
+    Loop
+End Sub
