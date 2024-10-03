@@ -64,7 +64,7 @@ function main(workbook: ExcelScript.Workbook) {
         "Warehouse",
 	"Sidney",
 	"Netherlands",
-	"salt Lake City",
+	"Salt Lake City",
         "EAN",
         "Variant Internal Name",
         "Variant ID",
@@ -167,6 +167,7 @@ function main(workbook: ExcelScript.Workbook) {
             "Archive / Archive / Snow / Accessories",
             "Archive / Archive / Snow / Youth",
             "Archive / Archive / Road-Gravel Cycling",
+	    "Archive / Archive / Mountain Bike",
             "Archive / Archive / Snow",
             "Archive / Archive",
             "Archive"
