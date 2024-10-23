@@ -89,7 +89,7 @@ Sub ReorganizeWarehouseData()
     Next key
 
     ' Adjust column deletion to AE:CP
-    ws.Range("AE:CP").Delete
+    ws.Range("AE:CT").Delete
     ws.Range("K:AB").Delete
     ws.Range("I:I").Delete
     ws.Range("G:G").Delete
