@@ -188,6 +188,12 @@ function main(workbook: ExcelScript.Workbook) {
     "Attribute - Technical Details Technical detail 12",
     "Netherlands",
     "Sidney",
+    "Total COG Netherlands",
+    "AVG COG Netherlands".
+    "Total COG Salt Lake City",
+    "AVG COG Salt Lake City",
+    "Total COG Sidney",
+    "AVG COG Sidney",
   ];
 
   // Get the total number of rows in the sheet (used range)
