@@ -62,9 +62,9 @@ function main(workbook: ExcelScript.Workbook) {
         "Attribute - Sort order Sort order",
         "Quantity",
         "Warehouse",
-	"Sidney",
-	"Netherlands",
-	"Salt Lake City",
+	    "Sidney",
+	    "Netherlands",
+	    "Salt Lake City",
         "EAN",
         "Variant Internal Name",
         "Variant ID",
@@ -103,6 +103,12 @@ function main(workbook: ExcelScript.Workbook) {
         "Attribute - Technical Details Technical detail 10",
         "Attribute - Technical Details Technical detail 11",
         "Attribute - Technical Details Technical detail 12",
+        "Total COG Netherlands",
+        "AVG COG Netherlands".
+        "Total COG Salt Lake City",
+        "AVG COG Salt Lake City",
+        "Total COG Sidney",
+        "AVG COG Sidney",
     ];
 
     // Get the total number of rows in the sheet (used range)
