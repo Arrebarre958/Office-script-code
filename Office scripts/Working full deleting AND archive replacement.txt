@@ -1,189 +1,190 @@
 function main(workbook: ExcelScript.Workbook) {
-	// Get the active worksheet
-	let selectedSheet: ExcelScript.Worksheet = workbook.getActiveWorksheet();
+    // Get the active worksheet
+    let selectedSheet: ExcelScript.Worksheet = workbook.getActiveWorksheet();
 
-	// Get the used range in the worksheet (includes data with headers)
-	let usedRange: ExcelScript.Range = selectedSheet.getUsedRange();
+    // Get the used range in the worksheet (includes data with headers)
+    let usedRange: ExcelScript.Range = selectedSheet.getUsedRange();
 
-	// Get the first row (header row) of the used range
-	let headerRange: ExcelScript.Range = usedRange.getRow(0);
+    // Get the first row (header row) of the used range
+    let headerRange: ExcelScript.Range = usedRange.getRow(0);
 
-	// Get the values of the headers in the first row
-	let headers: string[] = headerRange.getValues()[0] as string[];
+    // Get the values of the headers in the first row
+    let headers: string[] = headerRange.getValues()[0] as string[];
 
-	// List of headers to delete
-	let headersToDelete: string[] = [
-		"Preorder",
-		"Product Status - Not possible to import",
-		"Variant Status - Not possible to import",
-		"Size Comment",
-		"Length",
-		"Width",
-		"Height",
-		"Dimensions Unit",
-		"Weight per size",
-		"UPC",
-		"Cost/Pcs",
-		"Cost currency",
-		"Folder",
-		"Collection",
-		"Internal Comment",
-		"Harmonization Code",
-		"Harmonization Code Description",
-		"Display Status - Not possible to import",
-		"Display Comment",
-		"Supplier Name",
-		"Country of Origin",
-		"Country ISO2",
-		"Retail - AUD",
-		"Retail - CAD",
-		"Retail - CHF",
-		"Retail - CZK",
-		"Retail - DKK",
-		"Retail - EUR",
-		"Retail - GBP",
-		"Retail - JPY",
-		"Retail - NOK",
-		"Retail - NZD",
-		"Retail - PLN",
-		"Retail - SEK",
-		"Retail - USD",
-		"Attribute - Showroom Color Swatch",
-		"Attribute - Showroom Custom Tag",
-		"Attribute - External engine tax code Prod Avalara (North America Tax) tax code",
-		"Attribute - Fit type Fit type",
-		"Attribute - Google Merchant g:color",
-		"Attribute - Google Merchant g:material",
-		"Attribute - Google Merchant g:pattern",
-		"Attribute - Google Merchant g:item_group_id",
-		"Attribute - Related products title",
-		"Total COG",
-		"AVG COG",
-		"Attribute - Sort order Sort order",
-		"Quantity",
-		"Warehouse",
-		"Sidney",
-		"Netherlands",
-		"Salt Lake City",
-		"EAN",
-		"Variant Internal Name",
-		"Variant ID",
-		"Size Chart",
-		"Size",
-		"Category",
-		"Canonical category",
-		"Measurement Chart",
-		"Short Description",
-		"Description",
-		"Display Name",
-		"Meta Title",
-		"Meta Description",
-		"Meta Keywords",
-		"Tags",
-		"URI",
-		"Tax Group",
-		"Attribute - Badge",
-		"Attribute - Color",
-		"Attribute - Fit",
-		"Attribute - Google Merchant g:category",
-		"Attribute - Google Merchant g:product_type",
-		"Attribute - Lens",
-		"Attribute - Lens guide type",
-		"Attribute - Product benefits Product benefits",
-		"Attribute - Size guide type",
-		"Attribute - Technical Details Technical detail 1",
-		"Attribute - Technical Details Technical detail 2",
-		"Attribute - Technical Details Technical detail 3",
-		"Attribute - Technical Details Technical detail 4",
-		"Attribute - Technical Details Technical detail 5",
-		"Attribute - Technical Details Technical detail 6",
-		"Attribute - Technical Details Technical detail 7",
-		"Attribute - Technical Details Technical detail 8",
-		"Attribute - Technical Details Technical detail 9",
-		"Attribute - Technical Details Technical detail 10",
-		"Attribute - Technical Details Technical detail 11",
-		"Attribute - Technical Details Technical detail 12",
-		"Total COG Netherlands",
-		"AVG COG Netherlands",
-    "Total COG Salt Lake City",
-		"AVG COG Salt Lake City",
-		"Total COG Sidney",
-		"AVG COG Sidney",
-	];
+    // List of headers to delete
+    let headersToDelete: string[] = [
+        "Preorder",
+        "Product Status - Not possible to import",
+        "Variant Status - Not possible to import",
+        "Size Comment",
+        "Length",
+        "Width",
+        "Height",
+        "Dimensions Unit",
+        "Weight per size",
+        "UPC",
+        "Cost/Pcs",
+        "Cost currency",
+        "Folder",
+        "Collection",
+        "Internal Comment",
+        "Harmonization Code",
+        "Harmonization Code Description",
+        "Display Status - Not possible to import",
+        "Display Comment",
+        "Supplier Name",
+        "Country of Origin",
+        "Country ISO2",
+        "Retail - AUD",
+        "Retail - CAD",
+        "Retail - CHF",
+        "Retail - CZK",
+        "Retail - DKK",
+        "Retail - EUR",
+        "Retail - GBP",
+        "Retail - JPY",
+        "Retail - NOK",
+        "Retail - NZD",
+        "Retail - PLN",
+        "Retail - SEK",
+        "Retail - USD",
+        "Attribute - Showroom Color Swatch",
+        "Attribute - Showroom Custom Tag",
+        "Attribute - External engine tax code Prod Avalara (North America Tax) tax code",
+        "Attribute - Fit type Fit type",
+        "Attribute - Google Merchant g:color",
+        "Attribute - Google Merchant g:material",
+        "Attribute - Google Merchant g:pattern",
+        "Attribute - Google Merchant g:item_group_id",
+        "Attribute - Related products title",
+        "Total COG",
+        "AVG COG",
+        "Attribute - Sort order Sort order",
+        "Quantity",
+        "Warehouse",
+	    "Sidney",
+	    "Netherlands",
+	    "Salt Lake City",
+        "EAN",
+        "Variant Internal Name",
+        "Variant ID",
+        "Size Chart",
+        "Size",
+        "Category",
+        "Canonical category",
+        "Measurement Chart",
+        "Short Description",
+        "Description",
+        "Display Name",
+        "Meta Title",
+        "Meta Description",
+        "Meta Keywords",
+        "Tags",
+        "URI",
+        "Tax Group",
+        "Attribute - Badge",
+        "Attribute - Color",
+        "Attribute - Fit",
+        "Attribute - Google Merchant g:category",
+        "Attribute - Google Merchant g:product_type",
+        "Attribute - Lens",
+        "Attribute - Lens guide type",
+        "Attribute - Product benefits Product benefits",
+        "Attribute - Size guide type",
+        "Attribute - Technical Details Technical detail 1",
+        "Attribute - Technical Details Technical detail 2",
+        "Attribute - Technical Details Technical detail 3",
+        "Attribute - Technical Details Technical detail 4",
+        "Attribute - Technical Details Technical detail 5",
+        "Attribute - Technical Details Technical detail 6",
+        "Attribute - Technical Details Technical detail 7",
+        "Attribute - Technical Details Technical detail 8",
+        "Attribute - Technical Details Technical detail 9",
+        "Attribute - Technical Details Technical detail 10",
+        "Attribute - Technical Details Technical detail 11",
+        "Attribute - Technical Details Technical detail 12",
+        "Total COG Netherlands",
+        "AVG COG Netherlands".
+        "Total COG Salt Lake City",
+        "AVG COG Salt Lake City",
+        "Total COG Sidney",
+        "AVG COG Sidney",
+	"Weight",
+    ];
 
-	// Get the total number of rows in the sheet (used range)
-	let rowCount: number = usedRange.getRowCount();
+    // Get the total number of rows in the sheet (used range)
+    let rowCount: number = usedRange.getRowCount();
 
-	// Loop through the headers array from the end to the beginning to avoid index shifting issues
-	for (let i = headers.length - 1; i >= 0; i--) {
-		let header = headers[i];
+    // Loop through the headers array from the end to the beginning to avoid index shifting issues
+    for (let i = headers.length - 1; i >= 0; i--) {
+        let header = headers[i];
 
-		// If the current header is in the headersToDelete array, delete the column
-		if (headersToDelete.includes(header)) {
-			// Delete the column at the current index (i)
-			selectedSheet.getRangeByIndexes(0, i, rowCount, 1)
-				.delete(ExcelScript.DeleteShiftDirection.left);
-		}
-	}
+        // If the current header is in the headersToDelete array, delete the column
+        if (headersToDelete.includes(header)) {
+            // Delete the column at the current index (i)
+            selectedSheet.getRangeByIndexes(0, i, rowCount, 1)
+                .delete(ExcelScript.DeleteShiftDirection.left);
+        }
+    }
 
-	// Re-fetch the used range after column deletions
-	usedRange = selectedSheet.getUsedRange();
-	headerRange = usedRange.getRow(0);
-	headers = headerRange.getValues()[0] as string[];
+    // Re-fetch the used range after column deletions
+    usedRange = selectedSheet.getUsedRange();
+    headerRange = usedRange.getRow(0);
+    headers = headerRange.getValues()[0] as string[];
 
-	// Find the index of the column with header "Category"
-	let categoryColumnIndex: number = headers.indexOf("Category");
+    // Find the index of the column with header "Category"
+    let categoryColumnIndex: number = headers.indexOf("Category");
 
-	// If the "Category" column is found (index >= 0), apply the replacements
-	if (categoryColumnIndex >= 0) {
-		// Apply the replacements only on the "Category" column
-		let categoryColumnRange: ExcelScript.Range = selectedSheet.getRangeByIndexes(0, categoryColumnIndex, rowCount, 1);
+    // If the "Category" column is found (index >= 0), apply the replacements
+    if (categoryColumnIndex >= 0) {
+        // Apply the replacements only on the "Category" column
+        let categoryColumnRange: ExcelScript.Range = selectedSheet.getRangeByIndexes(0, categoryColumnIndex, rowCount, 1);
 
-		// List of replacements to apply
-		let replacements: string[] = [
-			"Archive / Archive / Mountain bike / Apparel / Women",
-			"Archive / Archive / Mountain bike / Apparel / Men",
-			"Archive / Archive / Mountain bike / Apparel / Men ",
-			"Archive / Archive / Mountain bike / Apparel / View all",
-			"Archive / Archive / Mountain bike / Apparel / View all ",
-			"Archive / Archive / Road-Gravel Cycling / Apparel / Men",
-			"Archive / Archive / Road-Gravel Cycling / Apparel / Men ",
-			"Archive / Archive / Road-Gravel Cycling / Apparel / Women",
-			"Archive / Archive / Road-Gravel Cycling / Apparel / Women ",
-			"Archive / Archive / Road-Gravel Cycling / Apparel / View all",
-			"Archive / Archive / Snow / Apparel / Men",
-			"Archive / Archive / Snow / Apparel / Women",
-			"Archive / Archive / Snow / Apparel / View all",
-			"Archive / Archive / Mountain bike / Helmets",
-			"Archive / Archive / Mountain bike / Eyewear",
-			"Archive / Archive / Mountain bike / Apparel",
-			"Archive / Archive / Mountain bike / Protection",
-			"Archive / Archive / Mountain bike / Accessories",
-			"Archive / Archive / Mountain bike / Youth",
-			"Archive / Archive / Mountain bike / View all",
-			"Archive / Archive / Road-Gravel Cycling / Helmets",
-			"Archive / Archive / Road-Gravel Cycling / Eyewear",
-			"Archive / Archive / Road-Gravel Cycling / Apparel",
-			"Archive / Archive / Road-Gravel Cycling / Accessories",
-			"Archive / Archive / Road-Gravel Cycling / Youth",
-			"Archive / Archive / Snow / Helmets",
-			"Archive / Archive / Snow / Goggles & Sunglasses",
-			"Archive / Archive / Snow / Apparel",
-			"Archive / Archive / Snow / Protection",
-			"Archive / Archive / Snow / Accessories",
-			"Archive / Archive / Snow / Youth",
-			"Archive / Archive / Road-Gravel Cycling",
-			"Archive / Archive / Mountain Bike",
-			"Archive / Archive / Snow",
-			"Archive / Archive",
-			"Archive"
-		];
+        // List of replacements to apply
+        let replacements: string[] = [
+            "Archive / Archive / Mountain bike / Apparel / Women",
+            "Archive / Archive / Mountain bike / Apparel / Men",
+            "Archive / Archive / Mountain bike / Apparel / Men ",
+            "Archive / Archive / Mountain bike / Apparel / View all",
+            "Archive / Archive / Mountain bike / Apparel / View all ",
+            "Archive / Archive / Road-Gravel Cycling / Apparel / Men",
+            "Archive / Archive / Road-Gravel Cycling / Apparel / Men ",
+            "Archive / Archive / Road-Gravel Cycling / Apparel / Women",
+            "Archive / Archive / Road-Gravel Cycling / Apparel / Women ",
+            "Archive / Archive / Road-Gravel Cycling / Apparel / View all",
+            "Archive / Archive / Snow / Apparel / Men",
+            "Archive / Archive / Snow / Apparel / Women",
+            "Archive / Archive / Snow / Apparel / View all",
+            "Archive / Archive / Mountain bike / Helmets",
+            "Archive / Archive / Mountain bike / Eyewear",
+            "Archive / Archive / Mountain bike / Apparel",
+            "Archive / Archive / Mountain bike / Protection",
+            "Archive / Archive / Mountain bike / Accessories",
+            "Archive / Archive / Mountain bike / Youth",
+            "Archive / Archive / Mountain bike / View all",
+            "Archive / Archive / Road-Gravel Cycling / Helmets",
+            "Archive / Archive / Road-Gravel Cycling / Eyewear",
+            "Archive / Archive / Road-Gravel Cycling / Apparel",
+            "Archive / Archive / Road-Gravel Cycling / Accessories",
+            "Archive / Archive / Road-Gravel Cycling / Youth",
+            "Archive / Archive / Snow / Helmets",
+            "Archive / Archive / Snow / Goggles & Sunglasses",
+            "Archive / Archive / Snow / Apparel",
+            "Archive / Archive / Snow / Protection",
+            "Archive / Archive / Snow / Accessories",
+            "Archive / Archive / Snow / Youth",
+            "Archive / Archive / Road-Gravel Cycling",
+	    "Archive / Archive / Mountain Bike",
+            "Archive / Archive / Snow",
+            "Archive / Archive",
+            "Archive"
+        ];
 
-		// Replace each value in the "Category" column with an empty string
-		for (let replacement of replacements) {
-			categoryColumnRange.replaceAll(replacement, "", { completeMatch: false, matchCase: false });
-		}
-	} else {
-		console.log("The 'Category' column was not found.");
-	}
+        // Replace each value in the "Category" column with an empty string
+        for (let replacement of replacements) {
+            categoryColumnRange.replaceAll(replacement, "", { completeMatch: false, matchCase: false });
+        }
+    } else {
+        console.log("The 'Category' column was not found.");
+    }
 }
