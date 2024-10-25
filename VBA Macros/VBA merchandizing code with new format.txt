@@ -23,7 +23,7 @@ Sub ReorganizeWarehouseData()
 
         Application.ScreenUpdating = False
 
- Columns("CQ").Delete
+ Columns("CU").Delete
 
     ' Define the new headers
     newHeaders = Array("Netherlands", "Salt Lake City", "Sidney")
@@ -87,6 +87,8 @@ Sub ReorganizeWarehouseData()
         ws.Cells(outputRow, headerCol + 2).Value = dict(key)(2)
         outputRow = outputRow + 1
     Next key
+
+
 
     ' Adjust column deletion to AE:CP
     ws.Range("AE:CT").Delete
