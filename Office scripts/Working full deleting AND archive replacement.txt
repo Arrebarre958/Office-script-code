@@ -104,7 +104,7 @@ function main(workbook: ExcelScript.Workbook) {
         "Attribute - Technical Details Technical detail 11",
         "Attribute - Technical Details Technical detail 12",
         "Total COG Netherlands",
-        "AVG COG Netherlands".
+        "AVG COG Netherlands",
         "Total COG Salt Lake City",
         "AVG COG Salt Lake City",
         "Total COG Sidney",
