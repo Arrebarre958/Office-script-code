@@ -189,7 +189,7 @@ function main(workbook: ExcelScript.Workbook) {
     "Netherlands",
     "Sidney",
     "Total COG Netherlands",
-    "AVG COG Netherlands".
+    "AVG COG Netherlands",
     "Total COG Salt Lake City",
     "AVG COG Salt Lake City",
     "Total COG Sidney",
@@ -215,6 +215,31 @@ function main(workbook: ExcelScript.Workbook) {
   usedRange = selectedSheet.getUsedRange();
   headerRange = usedRange.getRow(0);
   headers = headerRange.getValues()[0] as string[];
+
+
+
+
+  function main(workbook: ExcelScript.Workbook) {
+    // Set the specified value to search for in Column H
+    const specifiedValue: string = "0";
+
+    // Get the active worksheet
+    const sheet: ExcelScript.Worksheet = workbook.getActiveWorksheet();
+
+    // Get the range of used cells in Column H
+    const range: ExcelScript.Range = sheet.getRange("H:H").getUsedRange();
+    const values = range.getValues();
+
+    // Loop through rows in reverse order (to prevent skipping rows on deletion)
+    for (let i = values.length - 1; i >= 0; i--) {
+        if (values[i][0] === specifiedValue) {
+            // Delete the row if the value in Column H matches the specified value
+            sheet.getRange(`H${i + 1}`).getEntireRow().delete();
+        }
+    }
+}
+
+
 
 
 
