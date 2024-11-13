@@ -110,6 +110,7 @@ function main(workbook: ExcelScript.Workbook) {
         "Total COG Sidney",
         "AVG COG Sidney",
 	"Weight",
+	"Store Name",
     ];
 
     // Get the total number of rows in the sheet (used range)
