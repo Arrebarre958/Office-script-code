@@ -528,4 +528,11 @@ function main(workbook: ExcelScript.Workbook) {
 
   table16.getSort().apply([{ key: 10, ascending: true }]);
 
+  // Get the range for column K
+  let columnK = newsheet3.getRange("K:K");
+
+  // Delete column K
+  columnK.delete(ExcelScript.DeleteShiftDirection.left);
+
+
 }
