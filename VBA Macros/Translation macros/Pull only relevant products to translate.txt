@@ -1,0 +1,45 @@
+Sub CheckAndDeleteRows()
+    Dim ws1 As Worksheet, ws2 As Worksheet
+    Dim lastRowA As Long, lastRowB As Long
+    Dim checkDict As Object
+    Dim i As Long
+    Dim checkValue As String
+    Dim foundMatch As Boolean
+    
+    ' Set references to sheets
+    Set ws1 = ThisWorkbook.Sheets("Sheet1")
+    Set ws2 = ThisWorkbook.Sheets("Sheet2")
+    
+    ' Get last row in Sheet1 Column A
+    lastRowA = ws1.Cells(ws1.Rows.Count, "A").End(xlUp).Row
+    ' Get last row in Sheet2 Column B
+    lastRowB = ws2.Cells(ws2.Rows.Count, "B").End(xlUp).Row
+    
+    ' Store values from Sheet1 Column A in a dictionary for quick lookup
+    Set checkDict = CreateObject("Scripting.Dictionary")
+    
+    For i = 1 To lastRowA
+        If ws1.Cells(i, "A").Value <> "" Then
+            checkDict(ws1.Cells(i, "A").Value) = True
+        End If
+    Next i
+    
+    ' Disable screen updates for faster execution
+    Application.ScreenUpdating = False
+    
+    ' Loop from the last row in Sheet2 Column B, checking every 22nd row upwards
+    For i = lastRowB To 1 Step -22
+        checkValue = ws2.Cells(i, "B").Value
+        foundMatch = checkDict.exists(checkValue)
+        
+        ' If value is NOT found, delete the 21 rows below
+        If Not foundMatch Then
+            ws2.Rows(i & ":" & i + 21).Delete
+        End If
+    Next i
+    
+    ' Re-enable screen updates
+    Application.ScreenUpdating = True
+    
+    MsgBox "Process completed successfully!", vbInformation
+End Sub

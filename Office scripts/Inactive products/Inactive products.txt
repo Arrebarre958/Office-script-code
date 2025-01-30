@@ -1,0 +1,71 @@
+function main(workbook: ExcelScript.Workbook) {
+	let selectedSheet = workbook.getActiveWorksheet();
+	// Add a new table at range A1:CU7139 on selectedSheet
+	let newTable = workbook.addTable(selectedSheet.getRange("A1:CU7139"), true);
+	// Table style applied on table newTable
+	newTable.setPredefinedTableStyle("TableStyleMedium7");
+	// Set height of row(s) at all cells on selectedSheet to 18.6
+	selectedSheet.getRange().getFormat().setRowHeight(18.6);
+	// Insert at range C:C on selectedSheet, move existing cells right
+	selectedSheet.getRange("C:C").insert(ExcelScript.InsertShiftDirection.right);
+	// Set range C1:C2 on selectedSheet
+	selectedSheet.getRange("C1:C2").setFormulasLocal([["FULLISH"],["=B2&I2"]]);
+	// Set fill color to #F7C7AC for range C1 on selectedSheet
+	selectedSheet.getRange("C1").getFormat().getFill().setColor("#F7C7AC");
+	// Set font color to "#FF0000" for range C1 on selectedSheet
+	selectedSheet.getRange("C1").getFormat().getFont().setColor("#FF0000");
+	// Set width of column(s) at range C:C on selectedSheet to 23.4
+	selectedSheet.getRange("C:C").getFormat().setColumnWidth(23.4);
+	// Insert at range D:D on selectedSheet, move existing cells right
+	selectedSheet.getRange("D:D").insert(ExcelScript.InsertShiftDirection.right);
+	// Set range D1:D2 on selectedSheet
+	selectedSheet.getRange("D1:D2").setValues([["FULLISHVALUE"],[""]]);
+	// Delete range D:D on selectedSheet
+	selectedSheet.getRange("D:D").delete(ExcelScript.DeleteShiftDirection.left);
+	// Paste to extended range obtained by extending down from range C2 on selectedSheet from extended range obtained by extending down from range C2 on selectedSheet
+	selectedSheet.getRange("C2").getExtendedRange(ExcelScript.KeyboardDirection.down).copyFrom(selectedSheet.getRange("C2").getExtendedRange(ExcelScript.KeyboardDirection.down), ExcelScript.RangeCopyType.values, false, false);
+	// Insert at range W:W on selectedSheet, move existing cells right
+	selectedSheet.getRange("W:W").insert(ExcelScript.InsertShiftDirection.right);
+	// Set range W1:W2 on selectedSheet
+	selectedSheet.getRange("W1:W2").setFormulasLocal([["VALUE NETHERLANDS"],["=VALUE(X2)"]]);
+	// Set width of column(s) at range W:W on selectedSheet to 29.5
+	selectedSheet.getRange("W:W").getFormat().setColumnWidth(29.5);
+	// Set fill color to #F7C7AC for range W1 on selectedSheet
+	selectedSheet.getRange("W1").getFormat().getFill().setColor("#F7C7AC");
+	// Set font color to "#FF0000" for range W1 on selectedSheet
+	selectedSheet.getRange("W1").getFormat().getFont().setColor("#FF0000");
+	// Insert at range X:X on selectedSheet, move existing cells right
+	selectedSheet.getRange("X:X").insert(ExcelScript.InsertShiftDirection.right);
+	// Set range X1:X2 on selectedSheet
+	selectedSheet.getRange("X1:X2").setFormulasLocal([["SALT LAKE CITY"],["=VALUE(Z2)"]]);
+	// Insert at range Y:Y on selectedSheet, move existing cells right
+	selectedSheet.getRange("Y:Y").insert(ExcelScript.InsertShiftDirection.right);
+	// Set range Y1:Y2 on selectedSheet
+	selectedSheet.getRange("Y1:Y2").setFormulasLocal([["VALUE SIDNEY"],["=VALUE(AB2)"]]);
+	// Insert at range I:I on selectedSheet, move existing cells right
+	selectedSheet.getRange("I:I").insert(ExcelScript.InsertShiftDirection.right);
+	// Set range I1:I2 on selectedSheet
+	selectedSheet.getRange("I1:I2").setFormulasLocal([["SUMIF NETHERLANDS"],["=SUMIF(C:C,C2,X:X)"]]);
+	// Set fill color to #F7C7AC for range I1 on selectedSheet
+	selectedSheet.getRange("I1").getFormat().getFill().setColor("#F7C7AC");
+	// Set font color to "#FF0000" for range I1 on selectedSheet
+	selectedSheet.getRange("I1").getFormat().getFont().setColor("#FF0000");
+	// Insert at range J:J on selectedSheet, move existing cells right
+	selectedSheet.getRange("J:J").insert(ExcelScript.InsertShiftDirection.right);
+	// Set range I1:J2 on selectedSheet
+	selectedSheet.getRange("I1:J2").setFormulasLocal([[null,"SUMIF SALT LAKE CITY"],["=SUMIF(C:C,C2,Y:Y)","=SUMIF(C:C,C2,Z:Z)"]]);
+	// Insert at range K:K on selectedSheet, move existing cells right
+	selectedSheet.getRange("K:K").insert(ExcelScript.InsertShiftDirection.right);
+	// Set range K1:K2 on selectedSheet
+	selectedSheet.getRange("K1:K2").setFormulasLocal([["SUMIF SIDNEY"],["=SUMIF(C:C,C2,AB:AB)"]]);
+	// Paste to extended range obtained by extending down from range I1:K1 on selectedSheet from extended range obtained by extending down from range I1:K1 on selectedSheet
+	selectedSheet.getRange("I1:K1").getExtendedRange(ExcelScript.KeyboardDirection.down).copyFrom(selectedSheet.getRange("I1:K1").getExtendedRange(ExcelScript.KeyboardDirection.down), ExcelScript.RangeCopyType.values, false, false);
+	// Remove duplicates from table newTable
+	newTable.getRange().removeDuplicates([2], true);
+	// Delete range D:D on selectedSheet
+	selectedSheet.getRange("D:D").delete(ExcelScript.DeleteShiftDirection.left);
+	// Delete range K:K on selectedSheet
+	selectedSheet.getRange("K:K").delete(ExcelScript.DeleteShiftDirection.left);
+	// Delete range L:W on selectedSheet
+	selectedSheet.getRange("L:W").delete(ExcelScript.DeleteShiftDirection.left);
+}

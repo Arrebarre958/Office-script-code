@@ -1,0 +1,131 @@
+Sub CleanUpData()
+
+    Application.ScreenUpdating = False  ' Turn off screen updating to speed up
+
+    Application.Calculation = xlCalculationManual ' Turn off automatic calculations
+
+     
+
+    Dim ws As Worksheet
+
+    On Error Resume Next
+
+    Set ws = ActiveSheet
+
+    On Error GoTo 0
+
+
+    If ws Is Nothing Then
+
+        MsgBox "Worksheet 'Translations' not found in 'Translation test'", vbCritical
+
+        Application.Calculation = xlCalculationAutomatic
+
+        Application.ScreenUpdating = True
+
+        Exit Sub
+
+End If
+
+    Dim LastRow As Long
+
+    Dim i As Long, j As Long
+
+    Dim BlockStart As Long
+
+    Dim BlockEnd As Long
+
+    Dim TechStart As Long
+
+    Dim TechEnd As Long
+
+    Dim TechFound As Boolean
+
+    Dim BlockFound As Boolean
+
+     
+
+    ' Find the last row with data in the sheet
+
+    LastRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
+
+     
+
+    ' Loop through the entire sheet from bottom to top
+
+    For i = LastRow To 1 Step -1
+
+        ' Identify the end of the bigger block by finding "URI:"
+
+        If ws.Cells(i, 1).Value = "URI:" Then
+
+            BlockEnd = i
+
+            BlockFound = True
+
+        End If
+
+         
+
+        ' Identify the start of the bigger block by finding "Name:"
+
+        If ws.Cells(i, 1).Value = "Name:" And BlockFound Then
+
+            BlockStart = i
+
+            BlockFound = False  ' Reset block found for the next block
+
+            TechFound = False    ' Reset technical details found for the new block
+
+             
+
+            ' Loop within this block and remove extra technical details
+
+            For j = BlockEnd To BlockStart Step -1
+
+                ' Remove any rows starting with "Variant #" or "Sort order"
+
+                If Left(ws.Cells(j, 1).Value, 8) = "Variant " Or Left(ws.Cells(j, 1).Value, 10) = "Sort order" Then
+
+                    ws.Rows(j).Delete
+
+                    ' Skip the rest of the logic and move to the next iteration
+
+                ElseIf ws.Cells(j, 1).Value = "Product Short Description:" Then
+
+                    ' Stop when reaching "Product Short Description:"
+
+                    TechEnd = j
+
+                ElseIf ws.Cells(j, 1).Value = "Technical Details - Technical detail 12:" Then
+
+                    If TechFound Then
+
+                        ' If this is the second or later occurrence, delete the entire range (from Technical detail 1 to 12)
+
+                        ws.Range(ws.Rows(j - 11), ws.Rows(j)).Delete
+
+                    Else
+
+                        ' Mark the first occurrence of technical details
+
+                        TechFound = True
+
+                    End If
+
+                End If
+
+            Next j
+
+        End If
+
+    Next i
+
+     
+
+    Application.Calculation = xlCalculationAutomatic ' Turn calculations back on
+
+    Application.ScreenUpdating = True  ' Turn screen updating back on
+
+End Sub
+
