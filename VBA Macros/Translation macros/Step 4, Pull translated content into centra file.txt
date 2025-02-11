@@ -1,0 +1,53 @@
+Sub MatchAndPasteValues()
+    Dim ws1 As Worksheet, ws2 As Worksheet
+    Dim lastRow1 As Long, lastRow2 As Long
+    Dim dict As Object
+    Dim cell As Range, foundCell As Range
+    
+    ' Set worksheets
+    Set ws1 = ThisWorkbook.Sheets("Sheet1")
+    Set ws2 = ThisWorkbook.Sheets("Sheet2")
+    
+    ' Find the last row in both sheets
+    lastRow1 = ws1.Cells(ws1.Rows.Count, "A").End(xlUp).Row
+    lastRow2 = ws2.Cells(ws2.Rows.Count, "B").End(xlUp).Row
+    
+    ' Create dictionary to store values from Sheet2 Column B
+    Set dict = CreateObject("Scripting.Dictionary")
+    
+    ' Populate dictionary with values from Sheet2 Column B
+    For Each cell In ws2.Range("B2:B" & lastRow2)
+        If Not dict.exists(cell.Value) Then
+            dict.Add cell.Value, cell.Row
+        End If
+    Next cell
+    
+    ' Loop through Sheet1 Column A to find matches
+    For Each cell In ws1.Range("A2:A" & lastRow1)
+        If dict.exists(cell.Value) Then
+            Dim matchRow As Long
+            matchRow = dict(cell.Value)
+            
+            ' Paste values dynamically in Sheet2 Column C based on matched row
+            ws2.Cells(matchRow + 14, "C").Value = ws1.Cells(cell.Row, "B").Value
+            ws2.Cells(matchRow + 15, "C").Value = ws1.Cells(cell.Row, "C").Value
+            ws2.Cells(matchRow + 1, "C").Value = ws1.Cells(cell.Row, "D").Value
+            ws2.Cells(matchRow + 2, "C").Value = ws1.Cells(cell.Row, "E").Value
+            ws2.Cells(matchRow + 3, "C").Value = ws1.Cells(cell.Row, "F").Value
+            ws2.Cells(matchRow + 4, "C").Value = ws1.Cells(cell.Row, "G").Value
+            ws2.Cells(matchRow + 5, "C").Value = ws1.Cells(cell.Row, "H").Value
+            ws2.Cells(matchRow + 6, "C").Value = ws1.Cells(cell.Row, "I").Value
+            ws2.Cells(matchRow + 7, "C").Value = ws1.Cells(cell.Row, "J").Value
+            ws2.Cells(matchRow + 8, "C").Value = ws1.Cells(cell.Row, "K").Value
+            ws2.Cells(matchRow + 9, "C").Value = ws1.Cells(cell.Row, "L").Value
+            ws2.Cells(matchRow + 10, "C").Value = ws1.Cells(cell.Row, "M").Value
+            ws2.Cells(matchRow + 11, "C").Value = ws1.Cells(cell.Row, "N").Value
+            ws2.Cells(matchRow + 12, "C").Value = ws1.Cells(cell.Row, "O").Value
+            ws2.Cells(matchRow + 13, "C").Value = ws1.Cells(cell.Row, "P").Value
+        End If
+    Next cell
+    
+    ' Clean up
+    Set dict = Nothing
+    MsgBox "Data transfer complete!", vbInformation
+End Sub

@@ -1,0 +1,67 @@
+Sub IndexAndRemoveDuplicates()
+    Dim ws As Worksheet
+    Dim lastRow As Long, i As Long
+    Dim dict As Object
+    Dim indexedValues As Object
+    Dim indexedRow As Variant
+    Dim cell As Range
+    Dim rowsToDelete As Range
+    
+    ' Set worksheet reference
+    Set ws = ThisWorkbook.Sheets("Sheet2")
+
+
+
+    ' Get last row in Sheet2 Column A
+    lastRowA_Sheet2 = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row    
+
+    
+    ' Delete the last row in Column A of Sheet2 and the 19 rows above it
+    If lastRowA_Sheet2 >= 20 Then
+        ws.Rows(lastRowA_Sheet2 - 19 & ":" & lastRowA_Sheet2).Delete
+    Else
+        ws.Rows(1 & ":" & lastRowA_Sheet2).Delete
+    End If
+   
+
+    
+    ' Find the last row with data in column B
+    lastRow = ws.Cells(ws.Rows.Count, 2).End(xlUp).Row
+    
+    ' Initialize dictionary for storing indexed values
+    Set dict = CreateObject("Scripting.Dictionary")
+    Set indexedValues = CreateObject("Scripting.Dictionary")
+    
+    ' Start indexing from the last row, moving upwards and skipping 21 rows
+    i = lastRow
+    Do While i > 0
+        If Not IsEmpty(ws.Cells(i, 2).Value) Then
+            If Not indexedValues.exists(ws.Cells(i, 2).Value) Then
+                indexedValues.Add ws.Cells(i, 2).Value, i
+            Else
+                ' Mark duplicates for deletion
+                dict(i) = ws.Cells(i, 2).Value
+            End If
+        End If
+        i = i - 22 ' Move 21 rows up (+1 for loop decrement)
+    Loop
+    
+    ' Loop through found duplicates and mark them for deletion along with 21 rows below
+    For Each indexedRow In dict.keys
+        If rowsToDelete Is Nothing Then
+            Set rowsToDelete = ws.Rows(indexedRow & ":" & Application.Min(indexedRow + 21, lastRow))
+        Else
+            Set rowsToDelete = Union(rowsToDelete, ws.Rows(indexedRow & ":" & Application.Min(indexedRow + 21, lastRow)))
+        End If
+    Next indexedRow
+    
+    ' Delete marked rows
+    If Not rowsToDelete Is Nothing Then rowsToDelete.Delete
+    
+    ' Cleanup
+    Set dict = Nothing
+    Set indexedValues = Nothing
+    Set rowsToDelete = Nothing
+    
+    MsgBox "Processing complete!", vbInformation
+End Sub

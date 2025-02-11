@@ -1,0 +1,21 @@
+Sub DeleteRowsWithURI()
+    Dim ws As Worksheet
+    Dim lastRow As Long
+    Dim i As Long
+    
+    ' Set the worksheet
+    Set ws = ThisWorkbook.Sheets("Sheet2")
+    
+    ' Find the last row in column A
+    lastRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
+
+    ' Loop from bottom to top to avoid shifting issues when deleting rows
+    For i = lastRow To 1 Step -1
+        If ws.Cells(i, 1).Value = "URI:" Then
+            ws.Rows(i).Delete
+        End If
+    Next i
+    
+    ' Clean up
+    Set ws = Nothing
+End Sub
