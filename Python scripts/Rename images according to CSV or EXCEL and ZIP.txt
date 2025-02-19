@@ -1,0 +1,91 @@
+import os
+import pandas as pd
+import uuid
+import zipfile
+
+def rename_images(folder_path, data_file):
+    # Determine file type (CSV or Excel) and read accordingly
+    file_ext = os.path.splitext(data_file)[-1].lower()
+    
+    if file_ext == ".csv":
+        df = pd.read_csv(data_file, header=None)
+    elif file_ext in (".xls", ".xlsx"):
+        df = pd.read_excel(data_file, header=None)
+    else:
+        print("Unsupported file format. Please provide a CSV or Excel file.")
+        return
+
+    # Ensure the folder path exists
+    if not os.path.exists(folder_path):
+        print(f"The folder path {folder_path} does not exist.")
+        return
+
+    # Get the list of image files in the folder
+    image_files = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))]
+    
+    # Sort the files to ensure they are in the correct order
+    image_files.sort()
+
+    # Temporarily rename all images to avoid conflicts
+    temp_names = []
+    for i, image_file in enumerate(image_files):
+        temp_name = f"temp_{uuid.uuid4().hex}.png"  # using .png as extension
+        temp_file_path = os.path.join(folder_path, temp_name)
+        old_file_path = os.path.join(folder_path, image_file)
+        os.rename(old_file_path, temp_file_path)
+        temp_names.append(temp_file_path)
+        print(f"Temporarily renamed '{image_file}' to '{temp_name}'")
+
+    # Rename the images to their final names based on the CSV/Excel data
+    for i, temp_file_path in enumerate(temp_names):
+        if i >= len(df):
+            break  # if there are more images than rows in the file, stop processing
+        new_name = str(df.iloc[i, 0])  # convert to string in case it's numeric
+        _, ext = os.path.splitext(temp_file_path)
+        new_file_path = os.path.join(folder_path, f"{new_name}{ext}")
+
+        # Add a unique suffix if the file already exists
+        unique_file_path = new_file_path
+        counter = 1
+        while os.path.exists(unique_file_path):
+            unique_file_path = os.path.join(folder_path, f"{new_name}_{counter}{ext}")
+            counter += 1
+
+        os.rename(temp_file_path, unique_file_path)
+        print(f"Renamed '{temp_file_path}' to '{unique_file_path}'")
+
+def create_zip_archives(folder_path, images_per_zip=10):
+    # Define the image file extensions to consider (adjust as needed)
+    image_extensions = ('.png', '.jpg', '.jpeg', '.bmp', '.gif')
+    
+    # List only the image files in the folder (ignoring other file types)
+    image_files = [f for f in os.listdir(folder_path)
+                   if f.lower().endswith(image_extensions) and os.path.isfile(os.path.join(folder_path, f))]
+    image_files.sort()  # Ensure a consistent order
+    
+    total_images = len(image_files)
+    print(f"Total images found for zipping: {total_images}")
+
+    zip_count = 0
+    # Group the images into batches of images_per_zip
+    for i in range(0, total_images, images_per_zip):
+        zip_count += 1
+        group = image_files[i:i + images_per_zip]
+        # Create the ZIP file with sequential naming (e.g., "1.zip", "2.zip", etc.)
+        zip_filename = os.path.join(folder_path, f"{zip_count}.zip")
+        with zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_DEFLATED) as zipf:
+            for image in group:
+                image_path = os.path.join(folder_path, image)
+                # arcname=image ensures the file is stored without the full path in the ZIP
+                zipf.write(image_path, arcname=image)
+        print(f"Created ZIP archive '{zip_filename}' containing {len(group)} images.")
+
+# Example usage:
+folder_path = r"C:\Users\aron.erici\Desktop\Test-image-folder"  # Adjust your folder path
+data_file = r"C:\Users\aron.erici\Desktop\Excel test with propper CSV.csv"  # Supports both CSV and Excel
+
+# First, rename the images based on your data file (CSV or Excel)
+rename_images(folder_path, data_file)
+
+# Then, create ZIP files with 10 images each.
+create_zip_archives(folder_path, images_per_zip=10)
