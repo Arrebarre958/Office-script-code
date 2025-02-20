@@ -5,11 +5,27 @@ import zipfile
 import re
 
 def natural_key(string_):
-    """Helper function for natural (human) sorting of filenames."""
+    """
+    Splits the string into a list of strings and integers for natural sorting.
+    """
     return [int(text) if text.isdigit() else text.lower() for text in re.split('([0-9]+)', string_)]
 
+def custom_sort_key(filename):
+    """
+    Custom sort key:
+    - Remove the file extension.
+    - Remove the " - kopia" substring for comparison.
+    - Use a flag (0 if " - kopia" is present, 1 if not) as a tiebreaker so that files with " - kopia"
+      come first when the base names are the same.
+    """
+    base, _ = os.path.splitext(filename)
+    flag = 0 if " - kopia" in base else 1
+    # Remove " - kopia" to compare the base names
+    cleaned = base.replace(" - kopia", "").strip()
+    return (natural_key(cleaned), flag)
+
 def rename_images(folder_path, data_file):
-    # Determine file type (CSV or Excel) and read accordingly
+    # Read CSV or Excel data
     file_ext = os.path.splitext(data_file)[-1].lower()
     if file_ext == ".csv":
         df = pd.read_csv(data_file, header=None)
@@ -19,37 +35,42 @@ def rename_images(folder_path, data_file):
         print("Unsupported file format. Please provide a CSV or Excel file.")
         return
 
-    # Ensure the folder path exists
+    # Check if folder exists
     if not os.path.exists(folder_path):
         print(f"The folder path {folder_path} does not exist.")
         return
 
-    # Get the list of image files in the folder
-    image_files = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))]
+    # Get list of image files (filtering by common image extensions)
+    image_files = [f for f in os.listdir(folder_path) 
+                   if os.path.isfile(os.path.join(folder_path, f)) and 
+                      f.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif'))]
     
-    # Use natural sort to order files as humans expect (e.g., image2.jpg comes before image10.jpg)
-    image_files.sort(key=natural_key)
+    # Sort images using the custom sort key in ascending order.
+    image_files.sort(key=custom_sort_key)
+    
+    # Get CSV names as a list from the first column (keep in original order)
+    csv_names = df.iloc[:, 0].tolist()
 
-    # Temporarily rename all images to avoid conflicts, preserving original file extensions
+    # Temporarily rename all images to avoid filename conflicts.
     temp_names = []
     for image_file in image_files:
         _, original_ext = os.path.splitext(image_file)
         temp_name = f"temp_{uuid.uuid4().hex}{original_ext}"
-        temp_file_path = os.path.join(folder_path, temp_name)
         old_file_path = os.path.join(folder_path, image_file)
+        temp_file_path = os.path.join(folder_path, temp_name)
         os.rename(old_file_path, temp_file_path)
         temp_names.append(temp_file_path)
         print(f"Temporarily renamed '{image_file}' to '{temp_name}'")
 
-    # Rename the images to their final names based on the CSV/Excel data
+    # Rename the images to their final names based on the CSV list.
     for i, temp_file_path in enumerate(temp_names):
-        if i >= len(df):
-            break  # if there are more images than rows, stop processing
-        new_name = str(df.iloc[i, 0])  # Convert to string in case it's numeric
+        if i >= len(csv_names):
+            break  # Stop if there are more images than CSV names.
+        new_name = str(csv_names[i])  # Ensure the new name is a string.
         _, ext = os.path.splitext(temp_file_path)
         new_file_path = os.path.join(folder_path, f"{new_name}{ext}")
 
-        # Add a unique suffix if the file already exists
+        # Add a unique suffix if a file with the new name already exists.
         unique_file_path = new_file_path
         counter = 1
         while os.path.exists(unique_file_path):
@@ -60,20 +81,21 @@ def rename_images(folder_path, data_file):
         print(f"Renamed '{temp_file_path}' to '{unique_file_path}'")
 
 def create_zip_archives(folder_path, images_per_zip=10):
-    # Define the image file extensions to consider
+    # Define acceptable image extensions.
     image_extensions = ('.png', '.jpg', '.jpeg', '.bmp', '.gif')
     
-    # List only the image files (ignoring other file types)
+    # List only the image files.
     image_files = [f for f in os.listdir(folder_path)
                    if f.lower().endswith(image_extensions) and os.path.isfile(os.path.join(folder_path, f))]
-    # Use natural sort to order the files consistently
-    image_files.sort(key=natural_key)
+    
+    # Sort images with the same custom sort key.
+    image_files.sort(key=custom_sort_key)
     
     total_images = len(image_files)
     print(f"Total images found for zipping: {total_images}")
 
     zip_count = 0
-    # Group the images into batches
+    # Group images into batches.
     for i in range(0, total_images, images_per_zip):
         zip_count += 1
         group = image_files[i:i + images_per_zip]
@@ -81,16 +103,16 @@ def create_zip_archives(folder_path, images_per_zip=10):
         with zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_DEFLATED) as zipf:
             for image in group:
                 image_path = os.path.join(folder_path, image)
-                # Store file without full path in the ZIP
+                # Store file without full path in the ZIP archive.
                 zipf.write(image_path, arcname=image)
         print(f"Created ZIP archive '{zip_filename}' containing {len(group)} images.")
 
 # Example usage:
 folder_path = r"C:\Users\aron.erici\Desktop\Helmets"  # Adjust your folder path
-data_file = r"C:\Users\aron.erici\Desktop\all LB helmets done.csv"  # Supports both CSV and Excel
+data_file = r"C:\Users\aron.erici\Desktop\all LB helmets done.csv"  # CSV or Excel file
 
-# First, rename the images based on your CSV/Excel data
+# Rename images based on CSV/Excel data.
 rename_images(folder_path, data_file)
 
-# Then, create ZIP files with 10 images each.
+# Create ZIP files with 10 images each.
 create_zip_archives(folder_path, images_per_zip=10)
