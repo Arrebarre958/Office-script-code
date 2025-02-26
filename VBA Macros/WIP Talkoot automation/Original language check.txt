@@ -1,4 +1,4 @@
-Sub FinalCombinedMacro()
+Sub FullCopyCheckBetweenTalkootAndCentra()
     ' ====================================================
     ' 1. CLEAN UP SHEET1
     ' ====================================================
@@ -244,9 +244,30 @@ Sub FinalCombinedMacro()
     ws2.Columns("W").Delete
 
     ' ====================================================
+    ' 8. ADD "PRODUCT NAME" COLUMN TO SHEET1
+    ' ====================================================
+    ' Insert a new column immediately to the right of Column A in Sheet1
+    Dim lastRowSht1 As Long
+    ws1.Columns("B").Insert Shift:=xlToRight, CopyOrigin:=xlFormatFromLeftOrAbove
+    ws1.Cells(1, "B").Value = "Product Name"
+    
+    lastRowSht1 = ws1.Cells(ws1.Rows.Count, "A").End(xlUp).Row
+    For i = 2 To lastRowSht1
+        key = ws1.Cells(i, "A").Value
+        foundRow = Application.Match(key, ws2.Range("B:B"), 0)
+        If Not IsError(foundRow) Then
+            ws1.Cells(i, "B").Value = ws2.Cells(foundRow, "D").Value
+        Else
+            ws1.Cells(i, "B").Value = ""
+        End If
+    Next i
+
+    ' ====================================================
     ' FINAL MESSAGE
     ' ====================================================
-    MsgBox "All processing steps completed successfully!", vbInformation
+    MsgBox "All processing steps completed successfully! All cells marked red are have discrepancies between Centra and Talkoot, Check Sheet1 for comparison", vbInformation
 End Sub
+
+
 
 
