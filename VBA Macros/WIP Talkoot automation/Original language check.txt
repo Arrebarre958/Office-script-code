@@ -1,0 +1,252 @@
+Sub FinalCombinedMacro()
+    ' ====================================================
+    ' 1. CLEAN UP SHEET1
+    ' ====================================================
+    Dim ws1 As Worksheet, ws2 As Worksheet
+    Dim lastCol As Integer, lastRow As Long, col As Integer, i As Long
+    Dim colHeaders As Variant
+    
+    Set ws1 = ThisWorkbook.Sheets("Sheet1")
+    colHeaders = Array("Model name", "Chat", "Web Description", "Detail 13", "Detail 14", _
+                       "Detail 15", "Detail 16", "Hang Tag", "Helmet Holder")
+    
+    ' Delete unwanted columns from Sheet1 (scan right-to-left)
+    lastCol = ws1.Cells(1, ws1.Columns.Count).End(xlToLeft).Column
+    For col = lastCol To 1 Step -1
+        If Not IsError(Application.Match(ws1.Cells(1, col).Value, colHeaders, 0)) Then
+            ws1.Columns(col).Delete
+        End If
+    Next col
+    
+    ' Process Column A in Sheet1: remove "/Project Manager" and prefix "PC" if value starts with a number
+    lastRow = ws1.Cells(ws1.Rows.Count, 1).End(xlUp).Row
+    For i = 2 To lastRow   ' Assuming headers in row 1
+        With ws1.Cells(i, 1)
+            .Value = Replace(.Value, "/Project Manager", "")
+            If .Value <> "" Then
+                If IsNumeric(Left(.Value, 1)) Then
+                    .Value = "PC" & .Value
+                End If
+            End If
+        End With
+    Next i
+
+    ' ====================================================
+    ' 2. CLEAN UP SHEET2
+    ' ====================================================
+    Dim j As Long, colIndex As Integer
+    Dim rng As Range, cell As Range
+    Dim dict As Object
+    Dim headers As Variant, header As Variant
+    Dim lastRow2 As Long
+    
+    Set ws2 = ThisWorkbook.Sheets("Sheet2")
+    
+    ' Remove duplicate rows based on Column B in Sheet2 (bottom-up)
+    Set dict = CreateObject("Scripting.Dictionary")
+    lastRow2 = ws2.Cells(ws2.Rows.Count, 2).End(xlUp).Row
+    For j = lastRow2 To 2 Step -1
+        If dict.exists(ws2.Cells(j, 2).Value) Then
+            ws2.Rows(j).Delete
+        Else
+            dict(ws2.Cells(j, 2).Value) = True
+        End If
+    Next j
+    Set dict = Nothing
+    
+    ' Keep only specific columns in Sheet2
+    Set dict = CreateObject("Scripting.Dictionary")
+    headers = Array("Product ID", "SKU", "Brand", "Product Name", "Variant", "Variant SKU", "Weight", _
+                    "Short Description", "Description", _
+                    "Attribute - Product benefits Product benefits", _
+                    "Attribute - Technical Details Technical detail 1", _
+                    "Attribute - Technical Details Technical detail 2", _
+                    "Attribute - Technical Details Technical detail 3", _
+                    "Attribute - Technical Details Technical detail 4", _
+                    "Attribute - Technical Details Technical detail 5", _
+                    "Attribute - Technical Details Technical detail 6", _
+                    "Attribute - Technical Details Technical detail 7", _
+                    "Attribute - Technical Details Technical detail 8", _
+                    "Attribute - Technical Details Technical detail 9", _
+                    "Attribute - Technical Details Technical detail 10", _
+                    "Attribute - Technical Details Technical detail 11", _
+                    "Attribute - Technical Details Technical detail 12")
+    For Each header In headers
+        dict(header) = True
+    Next header
+    
+    Set rng = ws2.Rows(1)
+    For colIndex = rng.Columns.Count To 1 Step -1
+        Set cell = rng.Cells(1, colIndex)
+        If Not dict.exists(Trim(cell.Value)) Then
+            ws2.Columns(colIndex).Delete
+        End If
+    Next colIndex
+    Set dict = Nothing
+    
+    ' ====================================================
+    ' 3. PROCESS COLUMN I IN SHEET2
+    ' ====================================================
+    Dim newCol As Integer
+    lastRow2 = ws2.Cells(ws2.Rows.Count, 9).End(xlUp).Row  ' Column I = 9th column
+    
+    ' Backup Column I by copying to Column W
+    ws2.Range("I1:I" & lastRow2).Copy
+    ws2.Range("W1").PasteSpecial Paste:=xlPasteValues
+    Application.CutCopyMode = False
+    
+    ' Insert a new column to the right of Column I (new Column J)
+    ws2.Columns(10).Insert Shift:=xlToRight, CopyOrigin:=xlFormatFromLeftOrAbove
+    newCol = 10
+    ' Process new column: extract text before "Item number: " if present
+    For Each cell In ws2.Range(ws2.Cells(2, newCol), ws2.Cells(lastRow2, newCol))
+        If cell.Offset(0, -1).Value <> "" Then
+            If InStr(1, cell.Offset(0, -1).Value, "Item number: ") > 0 Then
+                cell.Value = Left(cell.Offset(0, -1).Value, InStr(1, cell.Offset(0, -1).Value, "Item number: ") - 1)
+            Else
+                cell.Value = cell.Offset(0, -1).Value
+            End If
+        Else
+            cell.Value = ""
+        End If
+    Next cell
+    ' Copy processed values back to Column I (from row 2 downward)
+    ws2.Range(ws2.Cells(2, newCol), ws2.Cells(lastRow2, newCol)).Copy
+    ws2.Range("I2").PasteSpecial Paste:=xlPasteValues
+    Application.CutCopyMode = False
+    ' Delete the temporary Column J
+    ws2.Columns(newCol).Delete
+
+    ' ====================================================
+    ' 4. ADD CENTRA DETAIL COLUMNS TO SHEET1
+    ' ====================================================
+    Dim colPositions As Variant, colNames As Variant
+    Dim idx As Integer
+    colPositions = Array("B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P")
+    colNames = Array("Centra detail ""Short description""", _
+                     "Centra detail ""Description""", _
+                     "Centra detail ""Highlights""", _
+                     "Centra detail ""1""", _
+                     "Centra detail ""2""", _
+                     "Centra detail ""3""", _
+                     "Centra detail ""4""", _
+                     "Centra detail ""5""", _
+                     "Centra detail ""6""", _
+                     "Centra detail ""7""", _
+                     "Centra detail ""8""", _
+                     "Centra detail ""9""", _
+                     "Centra detail ""10""", _
+                     "Centra detail ""11""", _
+                     "Centra detail ""12""")
+    ' Insert new columns from right-to-left to maintain positions
+    For idx = UBound(colPositions) To 0 Step -1
+        ws1.Columns(colPositions(idx)).Insert Shift:=xlToRight, CopyOrigin:=xlFormatFromLeftOrAbove
+        ws1.Cells(1, ws1.Columns(colPositions(idx)).Column).Value = colNames(idx)
+    Next idx
+
+    ' ====================================================
+    ' 5. COMPARE SHEETS AND HIGHLIGHT MATCHES/DIFFERENCES
+    ' ====================================================
+    Dim mapping As Variant, iMap As Integer, row2 As Long
+    mapping = Array(Array("C", "H"), Array("E", "I"), Array("G", "J"), Array("I", "K"), _
+                    Array("K", "L"), Array("M", "M"), Array("O", "N"), Array("Q", "O"), _
+                    Array("S", "P"), Array("U", "Q"), Array("W", "R"), Array("Y", "S"), _
+                    Array("AA", "T"), Array("AC", "U"), Array("AE", "V"))
+    
+    lastRow = ws1.Cells(ws1.Rows.Count, "A").End(xlUp).Row
+    lastRow2 = ws2.Cells(ws2.Rows.Count, "B").End(xlUp).Row
+    Set dict = CreateObject("Scripting.Dictionary")
+    ' Build a lookup dictionary from Sheet2 (Column B)
+    For Each cell In ws2.Range("B2:B" & lastRow2)
+        dict(cell.Value) = cell.Row
+    Next cell
+    
+    ' Compare each key from Sheet1 (Column A) with Sheet2, and highlight differences
+    For Each cell In ws1.Range("A2:A" & lastRow)
+        If dict.exists(cell.Value) Then
+            row2 = dict(cell.Value)
+            For iMap = LBound(mapping) To UBound(mapping)
+                Dim col1 As String, col2 As String
+                Dim rng1 As Range, rng2 As Range
+                col1 = mapping(iMap)(0)
+                col2 = mapping(iMap)(1)
+                Set rng1 = ws1.Cells(cell.Row, ws1.Columns(col1).Column)
+                Set rng2 = ws2.Cells(row2, ws2.Columns(col2).Column)
+                Dim cleaned1 As String, cleaned2 As String
+                cleaned1 = Replace(Replace(Replace(Replace(rng1.Value, " ", ""), vbLf, ""), "•", ""), "-", "")
+                cleaned2 = Replace(Replace(Replace(Replace(rng2.Value, " ", ""), vbLf, ""), "•", ""), "-", "")
+                
+                If cleaned1 = cleaned2 Then
+                    rng1.Interior.Color = RGB(144, 238, 144) ' Green
+                    rng2.Interior.Color = RGB(144, 238, 144)
+                Else
+                    rng1.Interior.Color = RGB(255, 0, 0)   ' Red
+                    rng2.Interior.Color = RGB(255, 0, 0)
+                End If
+            Next iMap
+        End If
+    Next cell
+    Set dict = Nothing
+
+    ' ====================================================
+    ' 6. COPY MATCHING CELLS FROM SHEET2 TO SHEET1
+    ' ====================================================
+    Dim mapping2 As Variant, iMap2 As Integer
+    mapping2 = Array(Array("B", "H"), Array("D", "I"), Array("F", "J"), Array("H", "K"), _
+                     Array("J", "L"), Array("L", "M"), Array("N", "N"), Array("P", "O"), _
+                     Array("R", "P"), Array("T", "Q"), Array("V", "R"), Array("X", "S"), _
+                     Array("Z", "T"), Array("AB", "U"), Array("AD", "V"))
+    lastRow = ws1.Cells(ws1.Rows.Count, "A").End(xlUp).Row
+    lastRow2 = ws2.Cells(ws2.Rows.Count, "B").End(xlUp).Row
+    Set dict = CreateObject("Scripting.Dictionary")
+    For Each cell In ws2.Range("B2:B" & lastRow2)
+        dict(cell.Value) = cell.Row
+    Next cell
+    
+    For Each cell In ws1.Range("A2:A" & lastRow)
+        If dict.exists(cell.Value) Then
+            row2 = dict(cell.Value)
+            For iMap2 = LBound(mapping2) To UBound(mapping2)
+                With ws1.Cells(cell.Row, ws1.Columns(mapping2(iMap2)(0)).Column)
+                    .Value = ws2.Cells(row2, ws2.Columns(mapping2(iMap2)(1)).Column).Value
+                    .Interior.Color = ws2.Cells(row2, ws2.Columns(mapping2(iMap2)(1)).Column).Interior.Color
+                End With
+            Next iMap2
+        End If
+    Next cell
+    
+    ' ====================================================
+    ' 7. FINAL STEP: TRANSFER COLUMN W DATA AND UPDATE SHEET1
+    ' ====================================================
+    Dim lastRowW As Long, lastRowSheet1 As Long
+    Dim cellB As Range, key As Variant, foundRow As Variant, matchRow As Long
+    
+    ' 7.1 Copy values from Column W in Sheet2 to Column I in Sheet2
+    lastRowW = ws2.Cells(ws2.Rows.Count, "W").End(xlUp).Row
+    ws2.Range("W1:W" & lastRowW).Copy
+    ws2.Range("I1").PasteSpecial Paste:=xlPasteValues
+    Application.CutCopyMode = False
+    
+    ' 7.2 Match values in Column B (Sheet2) with Column A (Sheet1) and copy Column W (Sheet2) to Column D (Sheet1)
+    lastRow2 = ws2.Cells(ws2.Rows.Count, "B").End(xlUp).Row
+    lastRowSheet1 = ws1.Cells(ws1.Rows.Count, "A").End(xlUp).Row
+    
+    For Each cellB In ws2.Range("B2:B" & lastRow2)
+        key = cellB.Value
+        foundRow = Application.Match(key, ws1.Range("A2:A" & lastRowSheet1), 0)
+        If Not IsError(foundRow) Then
+            matchRow = foundRow + 1  ' Adjust since match range starts at row 2
+            ws1.Cells(matchRow, "D").Value = ws2.Cells(cellB.Row, "W").Value
+        End If
+    Next cellB
+    
+    ' 7.3 Delete Column W in Sheet2
+    ws2.Columns("W").Delete
+
+    ' ====================================================
+    ' FINAL MESSAGE
+    ' ====================================================
+    MsgBox "All processing steps completed successfully!", vbInformation
+End Sub
+
+
