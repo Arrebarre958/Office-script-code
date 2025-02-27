@@ -56,7 +56,7 @@ Sub FullCopyCheckBetweenTalkootAndCentra()
     
     ' Keep only specific columns in Sheet2
     Set dict = CreateObject("Scripting.Dictionary")
-    headers = Array("Product ID", "SKU", "Brand", "Product Name", "Variant", "Variant SKU", "Weight", _
+    headers = Array("Product ID", "SKU", "Brand", "Product Name", "Variant", "Variant SKU", "Variant Status - Not possible to import", _
                     "Short Description", "Description", _
                     "Attribute - Product benefits Product benefits", _
                     "Attribute - Technical Details Technical detail 1", _
@@ -267,6 +267,8 @@ Sub FullCopyCheckBetweenTalkootAndCentra()
     ' ====================================================
     MsgBox "All processing steps completed successfully! All cells marked red are have discrepancies between Centra and Talkoot, Check Sheet1 for comparison", vbInformation
 End Sub
+
+
 
 
 
