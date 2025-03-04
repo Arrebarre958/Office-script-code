@@ -1,6 +1,3 @@
-
-
-
 function main(workbook: ExcelScript.Workbook) {
     let sheet1 = workbook.getWorksheet("Sheet1");
     let sheet2 = workbook.getWorksheet("Sheet2");
@@ -111,6 +108,64 @@ function main(workbook: ExcelScript.Workbook) {
       return;
     }
   
+    //INSERTED HERE
+
+        // Get the used range of the sheet
+        let dataRange = sheet2.getUsedRange();
+        if (!dataRange) {
+            console.log("No data found in Sheet2.");
+            return;
+        }
+    
+        let sheetValues = dataRange.getValues();
+        
+        // Define column indices for clarity
+        let colIndexFullSKU = 0;  // Column A
+        let colIndexVariant = 3;  // Column D
+        let colIndexCampaignType = 8;  // Column I
+    
+        // Create a map to store the first occurrence of each unique SKU with values in D and I
+        let skuReferenceMap = new Map<string, { storedVariant: string, storedCampaignType: string }>();
+    
+        // First pass: Identify and store SKUs with valid Variant (D) and Campaign Type (I)
+        for (let rowIndex = 1; rowIndex < sheetValues.length; rowIndex++) {
+            let skuValue = sheetValues[rowIndex][colIndexFullSKU];
+            let variantValue = sheetValues[rowIndex][colIndexVariant];
+            let campaignTypeValue = sheetValues[rowIndex][colIndexCampaignType];
+    
+            if (skuValue && variantValue && campaignTypeValue) {
+                skuReferenceMap.set(skuValue.toString(), { 
+                    storedVariant: variantValue.toString(), 
+                    storedCampaignType: campaignTypeValue.toString() 
+                });
+            }
+        }
+    
+        // Second pass: Fill in missing Variant (D) and Campaign Type (I) for matching SKUs
+        for (let rowIndex = 1; rowIndex < sheetValues.length; rowIndex++) {
+            let skuValue = sheetValues[rowIndex][colIndexFullSKU];
+    
+            if (skuValue && skuReferenceMap.has(skuValue.toString())) {
+                let referenceData = skuReferenceMap.get(skuValue.toString());
+    
+                // If Variant (D) is empty, populate it
+                if (!sheetValues[rowIndex][colIndexVariant] && referenceData.storedVariant) {
+                    sheetValues[rowIndex][colIndexVariant] = referenceData.storedVariant;
+                }
+    
+                // If Campaign Type (I) is empty, populate it
+                if (!sheetValues[rowIndex][colIndexCampaignType] && referenceData.storedCampaignType) {
+                    sheetValues[rowIndex][colIndexCampaignType] = referenceData.storedCampaignType;
+                }
+            }
+        }
+    
+        // Write back the updated values to Sheet2
+        dataRange.setValues(sheetValues);
+        
+
+    //INSERTED HERE
+
     let values1 = usedRange6.getValues();
     let rowsToDelete: number[] = [];
   
@@ -216,9 +271,6 @@ function main(workbook: ExcelScript.Workbook) {
             // Set the header in column A to "Full SKU"
             sheet1.getRange("A1").setValue("Full SKU");
         }
-
-    
-
 
 }
   
