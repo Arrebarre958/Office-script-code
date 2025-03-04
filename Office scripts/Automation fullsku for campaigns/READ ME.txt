@@ -1,0 +1,5 @@
+This script is in order to basically flesh out a campaign export and add the size SKU suffix to what's in there. 
+
+In "sheet1" you need to have a full centra product export (with size). In "sheet2" you need to have whatever 
+campaign export you want to work on. Important that the sheets are named "sheet1" and "sheet2" without any space between
+letters and numbers. 

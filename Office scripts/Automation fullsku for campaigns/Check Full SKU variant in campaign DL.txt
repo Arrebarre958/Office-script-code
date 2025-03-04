@@ -272,5 +272,56 @@ function main(workbook: ExcelScript.Workbook) {
             sheet1.getRange("A1").setValue("Full SKU");
         }
 
+
+
+       
+// insert
+    let wsSheet1 = workbook.getWorksheet("Sheet1");
+    let wsSheet2 = workbook.getWorksheet("Sheet2");
+
+    // Get the used range for Sheet1
+    let rangeSheet1 = wsSheet1.getUsedRange();
+    let dataSheet1: (string | number)[][] = rangeSheet1.getValues();
+    let totalRowsSheet1 = dataSheet1.length;
+
+    // Get the used range for Sheet2
+    let rangeSheet2 = wsSheet2.getUsedRange();
+    let dataSheet2: (string | number)[][] = rangeSheet2.getValues();
+    let totalRowsSheet2 = dataSheet2.length;
+
+    // Create a Map for quick lookup (SKU -> Product Name from Sheet1)
+    let skuToProductMap = new Map<string, string>();
+
+    for (let rowIndex1 = 1; rowIndex1 < totalRowsSheet1; rowIndex1++) { // Start from row 1 to skip headers
+        let skuKey = dataSheet1[rowIndex1][0]?.toString().trim(); // Column A in Sheet1 (SKU)
+        let productValue = dataSheet1[rowIndex1][3]?.toString().trim() || ""; // Column D in Sheet1 (Product Name)
+        if (skuKey) {
+            skuToProductMap.set(skuKey, productValue);
+        }
+    }
+
+    // Store the updated values for Column E in Sheet2
+    let updatedColumnE: string[][] = [];
+
+    for (let rowIndex2 = 1; rowIndex2 < totalRowsSheet2; rowIndex2++) { // Start from row 1 to skip headers
+        let skuLookupValue = dataSheet2[rowIndex2][0]?.toString().trim(); // Column A in Sheet2 (SKU)
+        let matchedValue = skuToProductMap.get(skuLookupValue) || ""; // If no match, return empty string
+        updatedColumnE.push([matchedValue]); // Ensure correct 2D format
+    }
+
+    // Only update the values if there is data to write
+    if (updatedColumnE.length > 0) {
+        wsSheet2.getRange(`E2:E${totalRowsSheet2}`).setValues(updatedColumnE);
+    }
+
+    // Rename the header in Column E to "Product Name"
+    wsSheet2.getRange("E1").setValue("Product Name");
+
+    console.log("XLOOKUP-like script executed successfully with fixed setValues format.");
+
+
+
+// insert
+
 }
   
