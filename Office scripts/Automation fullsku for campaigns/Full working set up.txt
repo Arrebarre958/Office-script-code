@@ -1,0 +1,224 @@
+
+
+
+function main(workbook: ExcelScript.Workbook) {
+    let sheet1 = workbook.getWorksheet("Sheet1");
+    let sheet2 = workbook.getWorksheet("Sheet2");
+  
+    // Step 1: In Sheet1, delete column A and override it with concatenated values from A2, G2, and L2.
+    sheet1.getRange("A:A").delete(ExcelScript.DeleteShiftDirection.left);  // Deletes column A
+    sheet1.getRange("A:A").insert(ExcelScript.InsertShiftDirection.right);
+    let usedRangeSheet1 = sheet1.getUsedRange();
+    let rowsSheet1 = usedRangeSheet1.getRowCount();
+  
+    for (let i = 1; i < rowsSheet1; i++) {
+      let valueA = sheet1.getRange("B" + (i + 1)).getValue();
+      let valueG = sheet1.getRange("H" + (i + 1)).getValue();
+      let valueL = sheet1.getRange("M" + (i + 1)).getValue();
+      sheet1.getRange("A" + (i + 1)).setValue(valueA + valueG + valueL); // Concatenate and set as value
+    }
+  
+    // Step 2: In Sheet2, insert a new column to the left of column A.
+    sheet2.getRange("A:A").insert(ExcelScript.InsertShiftDirection.right);
+  
+    // Step 3: Set the header for the new column as "Full SKU".
+    sheet2.getRange("A1").setValue("Full SKU");
+  
+    // Step 4: In Sheet2, starting from A2, concatenate values from C2 and E2 and set as values.
+    let usedRangeSheet2 = sheet2.getUsedRange();
+    let rowsSheet2 = usedRangeSheet2.getRowCount();
+  
+    for (let i = 1; i < rowsSheet2; i++) {
+      let valueC = sheet2.getRange("C" + (i + 1)).getValue();
+      let valueE = sheet2.getRange("E" + (i + 1)).getValue();
+      sheet2.getRange("A" + (i + 1)).setValue(valueC + valueE); // Concatenate and set as value
+    }
+  
+    // Declare the ranges explicitly
+    let sheet1Range: ExcelScript.Range = sheet1.getRange("A2:A" + sheet1.getUsedRange().getRowCount());
+    let sheet2Range: ExcelScript.Range = sheet2.getRange("A2:A" + sheet2.getUsedRange().getRowCount());
+  
+    // Get values from the ranges, explicitly declaring the types as arrays of arrays of strings
+    let sheet1RangeValues: string[][] = sheet1Range.getValues() as string[][];
+    let sheet2RangeValues: string[][] = sheet2Range.getValues() as string[][];
+  
+    // Loop through all values in Sheet1 column A
+    sheet1RangeValues.forEach((row, rowIndex) => {
+      let matchValue = row[0].slice(0, row[0].length - 4); // Get the base value (exclude the last 4 characters)
+      let suffix = row[0].slice(-4); // Get the suffix (last 4 characters)
+  
+      // Find matching values in Sheet2
+      let sheet2Cell = sheet2RangeValues.findIndex((cell) => cell[0] === matchValue);
+  
+      // If a match is found, insert rows and add suffix in Sheet2
+      if (sheet2Cell !== -1) {
+        // Determine the row in Sheet2 where the match is found
+        let matchRow = sheet2.getRange("A" + (sheet2Cell + 2)); // Row index in Sheet2 (adjusting for 1-based indexing)
+  
+        // Insert a new row below the match in Sheet2
+        let insertRow = sheet2.getRange("A" + (sheet2Cell + 3)); // The row where the new row will be inserted (shift down)
+  
+        insertRow.getEntireRow().insert(ExcelScript.InsertShiftDirection.down); // Insert a new row below
+  
+        // Add the base value and the suffix into columns A and B of Sheet2
+        sheet2.getRange("A" + (sheet2Cell + 3)).setValue(matchValue);  // Add the match value to column A
+        sheet2.getRange("B" + (sheet2Cell + 3)).setValue(suffix);      // Add the suffix to column B
+      }
+    });
+
+
+    
+    // Get the used range in the sheet
+    let usedRange5 = sheet2.getUsedRange();
+    if (!usedRange5) {
+      console.log("No data found in Sheet2!");
+      return;
+    }
+  
+    let values = usedRange5.getValues();
+  
+    // Loop through the rows (starting from row index 1 to ignore header)
+    for (let i = 1; i < values.length; i++) {
+      let colBValue = values[i][1]; // Column B (index 1)
+  
+      // Check if value exists and length is greater than 4
+      if (colBValue && colBValue.toString().length > 4) {
+        values[i][1] = ""; // Clear value in Column B
+      }
+  
+      // Combine Column A (index 0) with Column B (index 1)
+      let colAValue = values[i][0] ? values[i][0].toString() : "";
+      let newColBValue = values[i][1] ? values[i][1].toString() : "";
+      values[i][2] = colAValue + newColBValue; // Store combined value in Column C
+    }
+  
+    // Write back the modified values to the sheet
+    usedRange5.setValues(values);
+  
+    console.log("Addition of size SKUs was executed successfully.");
+  
+
+    	// Replace all "Know" with "" on range C:C on selectedSheet
+	sheet2.getRange("C:C").replaceAll("Know", "", {completeMatch: false, matchCase: false});
+	// Replace all "Ora" with "" on range C:C on selectedSheet
+	sheet2.getRange("C:C").replaceAll("Ora", "", {completeMatch: false, matchCase: false});
+
+
+    // all good before here
+    let usedRange6 = sheet2.getUsedRange();
+    if (!usedRange6) {
+      console.log("No data found in Sheet2!");
+      return;
+    }
+  
+    let values1 = usedRange6.getValues();
+    let rowsToDelete: number[] = [];
+  
+    // Loop through the rows (starting from row index 1 to ignore header)
+    for (let i = 1; i < values.length; i++) {
+      let colCValue = values1[i][2]; // Column C (index 2)
+  
+      // Check if Column C value exists and is 12 characters or less
+      if (colCValue && colCValue.toString().length <= 12) {
+        rowsToDelete.push(i + 1); // Store row index for deletion (Excel row numbers are 1-based)
+      }
+    }
+  
+    // Delete rows in reverse order to prevent index shifting
+    for (let i = rowsToDelete.length - 1; i >= 0; i--) {
+      sheet2.getRange(`A${rowsToDelete[i]}`).getEntireRow().delete(ExcelScript.DeleteShiftDirection.up);
+    }
+  
+    console.log(`Deleted ${rowsToDelete.length} rows where Column C value was 12 characters or less.`);
+
+
+    // all good before here
+
+    // Insert two new columns to the right of column C
+    let colD = sheet2.getRange("D1");
+    colD.getEntireColumn().insert(ExcelScript.InsertShiftDirection.right);
+    let colE = sheet2.getRange("E1");
+    colE.getEntireColumn().insert(ExcelScript.InsertShiftDirection.right);
+  
+    // Set headers for new columns
+    sheet2.getRange("D1").setValue("STOCK EU");
+    sheet2.getRange("E1").setValue("STOCK NA");
+  
+    // Get used range in Sheet1
+    let sheet11Range = sheet1.getUsedRange();
+    if (!sheet1Range) {
+      console.log("No data found in Sheet1!");
+      return;
+    }
+  
+    let sheet1Values = sheet11Range.getValues();
+  
+    // Find column indices for "Netherlands" and "Salt Lake City" in Sheet1
+    let headers: string[] = sheet1Values[0].map(val => val.toString());
+    let netherlandsIndex = headers.indexOf("Netherlands");
+    let saltLakeIndex = headers.indexOf("Salt Lake City");
+  
+    if (netherlandsIndex === -1 || saltLakeIndex === -1) {
+      console.log("One or both stock columns not found in Sheet1!");
+      return;
+    }
+  
+    // Create a mapping from Column A in Sheet1 to stock values
+    let stockMap = new Map<string, { euStock: string | number, naStock: string | number }>();
+  
+    for (let i = 1; i < sheet1Values.length; i++) {
+      let key = sheet1Values[i][0]?.toString().trim(); // Column A (Product ID)
+      if (key) {
+        stockMap.set(key, {
+          euStock: sheet1Values[i][netherlandsIndex] ?? "", // Ensure value is not undefined
+          naStock: sheet1Values[i][saltLakeIndex] ?? "" // Ensure value is not undefined
+        });
+      }
+    }
+  
+    // Get used range in Sheet2
+    let sheet21Range = sheet2.getUsedRange();
+    if (!sheet2Range) {
+      console.log("No data found in Sheet2!");
+      return;
+    }
+  
+    let sheet2Values = sheet21Range.getValues();
+  
+    // Loop through Sheet2 Column C and match with Sheet1 Column A
+    for (let i = 1; i < sheet2Values.length; i++) {
+      let lookupValue = sheet2Values[i][2]?.toString().trim(); // Column C in Sheet2
+  
+      if (lookupValue && stockMap.has(lookupValue)) {
+        let stockData = stockMap.get(lookupValue);
+        sheet2Values[i][3] = stockData?.euStock ?? ""; // STOCK EU (Column D)
+        sheet2Values[i][4] = stockData?.naStock ?? ""; // STOCK NA (Column E)
+      } else {
+        sheet2Values[i][3] = ""; // If no match, leave blank
+        sheet2Values[i][4] = "";
+      }
+    }
+  
+    // Write the updated values back to Sheet2
+    sheet21Range.setValues(sheet2Values);
+  
+    console.log("Stock values updated successfully.");
+  
+        if (sheet2) {
+            // Delete columns A and B
+            sheet2.getRange("A:B").delete(ExcelScript.DeleteShiftDirection.left);
+    
+            // Set the header in column A to "Full SKU"
+            sheet2.getRange("A1").setValue("Full SKU");
+        }
+
+        if (sheet1) {
+            // Set the header in column A to "Full SKU"
+            sheet1.getRange("A1").setValue("Full SKU");
+        }
+
+    
+
+
+}
+  
