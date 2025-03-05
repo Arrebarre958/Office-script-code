@@ -274,8 +274,7 @@ function main(workbook: ExcelScript.Workbook) {
 
 
 
-       
-// insert
+
     let wsSheet1 = workbook.getWorksheet("Sheet1");
     let wsSheet2 = workbook.getWorksheet("Sheet2");
 
@@ -323,5 +322,61 @@ function main(workbook: ExcelScript.Workbook) {
 
 // insert
 
+    // Delete columns F-H in Sheet2 (indices are 5,6,7 in zero-based index)
+    sheet2.getRange("G:H").delete(ExcelScript.DeleteShiftDirection.left);
+
+    // Delete columns L-M in Sheet2 (indices adjust after first deletion, so they are now J-K)
+    sheet2.getRange("J:K").delete(ExcelScript.DeleteShiftDirection.left);
+
+    // Insert two new columns between F and G (now F is original, G is new)
+    let rangeG = sheet2.getRange("G:G");
+    rangeG.insert(ExcelScript.InsertShiftDirection.right);
+    let rangeF = sheet2.getRange("F:F");
+    rangeF.insert(ExcelScript.InsertShiftDirection.right);
+
+    // Set headers for the new columns
+    sheet2.getRange("F1").setValue("Price USD");
+    sheet2.getRange("G1").setValue("Price EUR");
+
+    // Read updated data from Sheet2 after column insertion
+    let sheet2Data: (string | number)[][] = sheet2.getUsedRange().getValues() as (string | number)[][];
+
+    // Ensure column indexes reflect the new structure
+    let priceUsdIndex = 5; // Column F (zero-based index)
+    let priceEurIndex = 6; // Column G (zero-based index)
+
+    // Read data from Sheet1
+    let sheet1Data: (string | number)[][] = sheet1.getUsedRange().getValues() as (string | number)[][];
+
+    // Find column indexes in Sheet1 for required values
+    let headerRow1 = sheet1Data[0];
+    let colAIndex1 = headerRow1.indexOf("A");
+    let retailUsdIndex = headerRow1.indexOf("Retail - USD");
+    let retailEurIndex = headerRow1.indexOf("Retail - EUR");
+
+    // Create lookup dictionary from Sheet1
+    let lookup: Record<string, { usd: string | number; eur: string | number }> = {};
+    for (let i = 1; i < sheet1Data.length; i++) {
+        let key = String(sheet1Data[i][colAIndex1]);
+        let usd = sheet1Data[i][retailUsdIndex];
+        let eur = sheet1Data[i][retailEurIndex];
+        lookup[key] = { usd, eur };
+    }
+
+    // Find column index of "A" in Sheet2
+    let colAIndex2 = sheet2Data[0].indexOf("A");
+
+    // Match values and populate new columns
+    for (let i = 1; i < sheet2Data.length; i++) {
+        let key = String(sheet2Data[i][colAIndex2]);
+        if (lookup[key]) {
+            sheet2Data[i][priceUsdIndex] = lookup[key].usd;
+            sheet2Data[i][priceEurIndex] = lookup[key].eur;
+        }
+    }
+
+    // Write back updated data to Sheet2
+    sheet2.getUsedRange().setValues(sheet2Data);
+
+    sheet2.getRange("H:H").delete(ExcelScript.DeleteShiftDirection.left);
 }
-  
