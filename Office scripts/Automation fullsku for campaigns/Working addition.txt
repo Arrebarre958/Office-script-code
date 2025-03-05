@@ -1,0 +1,84 @@
+function main(workbook: ExcelScript.Workbook) {
+    let sheet2 = workbook.getWorksheet("Sheet2");
+    let sheet1 = workbook.getWorksheet("Sheet1");
+
+    // Delete columns F-H in Sheet2 (indices are 5,6,7 in zero-based index)
+    sheet2.getRange("F:H").delete(ExcelScript.DeleteShiftDirection.left);
+
+    // Delete columns L-M in Sheet2 (indices adjust after first deletion, so they are now J-K)
+    sheet2.getRange("J:K").delete(ExcelScript.DeleteShiftDirection.left);
+
+    // Insert three new columns between F and G (now F is original, G and H are new)
+    let rangeG = sheet2.getRange("G:G");
+    rangeG.insert(ExcelScript.InsertShiftDirection.right);
+    let rangeF = sheet2.getRange("G:G");
+    rangeF.insert(ExcelScript.InsertShiftDirection.right);
+    let rangeE = sheet2.getRange("G:G");
+    rangeE.insert(ExcelScript.InsertShiftDirection.right);
+
+    // Set headers for the new columns
+    sheet2.getRange("E1").setValue("New Column");
+    sheet2.getRange("F1").setValue("Price USD");
+    sheet2.getRange("G1").setValue("Price EUR");
+    sheet2.getRange("H1").setValue("Product folder"); // New column for AB data
+    sheet2.getRange("I1").setValue("discount percentage");
+
+
+
+
+
+
+
+    // Get the used range of Column F (excluding header)
+    let sourceColumnFRange = sheet2.getRange("F2:F" + sheet2.getUsedRange().getRowCount());
+    let extractedColumnFValues = sourceColumnFRange.getValues();
+
+    // Paste values into Column I starting from row 2 (excluding header)
+    let destinationColumnIRange = sheet2.getRange("I2:I" + sheet2.getUsedRange().getRowCount());
+    destinationColumnIRange.setValues(extractedColumnFValues);
+
+
+
+    // Read data from Sheet1
+    let sheet1Data: (string | number)[][] = sheet1.getUsedRange().getValues() as (string | number)[][];
+    let sheet2Data: (string | number)[][] = sheet2.getUsedRange().getValues() as (string | number)[][];
+
+    // Find column indexes in Sheet1 for required values
+    let headerRow1 = sheet1Data[0];
+    let colAIndex1 = headerRow1.indexOf("Full SKU");
+    let retailUsdIndex = headerRow1.indexOf("Retail - USD");
+    let retailEurIndex = headerRow1.indexOf("Retail - EUR");
+    let additionalDataIndex = headerRow1.indexOf("Folder"); // Column folder from Sheet1
+
+    // Create lookup dictionary from Sheet1 with normalized SKUs
+    let lookup: Record<string, { usd: string | number; eur: string | number; additional: string | number }> = {};
+    for (let i = 1; i < sheet1Data.length; i++) {
+        let key = String(sheet1Data[i][colAIndex1]).trim(); // Trim whitespace for exact match
+        let usd = sheet1Data[i][retailUsdIndex];
+        let eur = sheet1Data[i][retailEurIndex];
+        let additional = sheet1Data[i][additionalDataIndex];
+        lookup[key] = { usd, eur, additional };
+    }
+
+    // Find column indexes in Sheet2
+    let headerRow2 = sheet2Data[0];
+    let colAIndex2 = headerRow2.indexOf("Full SKU");
+    let priceUsdIndex = headerRow2.indexOf("Price USD");
+    let priceEurIndex = headerRow2.indexOf("Price EUR");
+    let additionalDataSheet2Index = headerRow2.indexOf("Product folder");
+
+    // Match values and populate new columns with exact SKU matches
+    for (let i = 1; i < sheet2Data.length; i++) {
+        let key = String(sheet2Data[i][colAIndex2]).trim(); // Normalize for exact match
+        if (lookup[key]) {
+            sheet2Data[i][priceUsdIndex] = lookup[key].usd;
+            sheet2Data[i][priceEurIndex] = lookup[key].eur;
+            sheet2Data[i][additionalDataSheet2Index] = lookup[key].additional;
+        }
+    }
+
+    // Write back updated data to Sheet2
+    sheet2.getUsedRange().setValues(sheet2Data);
+
+    sheet2.getRange("E1").setValue("Product name");
+}
