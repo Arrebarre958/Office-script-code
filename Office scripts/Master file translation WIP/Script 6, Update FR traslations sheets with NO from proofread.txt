@@ -1,0 +1,49 @@
+function main(workbook: ExcelScript.Workbook) {
+    let sheetEN = workbook.getWorksheet("Proofread english");
+    let sheetFR = workbook.getWorksheet("Proofread french");
+
+    if (!sheetEN || !sheetFR) {
+        console.log("One or both sheets are missing.");
+        return;
+    }
+
+    // Get data ranges
+    let rangeEN = sheetEN.getUsedRange();
+    let valuesEN: (string | number | boolean)[][] = rangeEN.getValues();
+    let headersEN = valuesEN[0];
+
+    let rangeFR = sheetFR.getUsedRange();
+    let valuesFR: (string | number | boolean)[][] = rangeFR.getValues();
+    let headersFR = valuesFR[0];
+
+    // Identify column indexes
+    let modelColEN = headersEN.indexOf("Model #/Status");
+    let proofreadColEN = headersEN.indexOf("Proofread?");
+    let modelColFR = headersFR.indexOf("Model #/Status");
+    let proofreadColFR = headersFR.indexOf("Proofread?");
+
+    if (modelColEN === -1 || proofreadColEN === -1 || modelColFR === -1 || proofreadColFR === -1) {
+        console.log("Required columns not found.");
+        return;
+    }
+
+    // Create a map of model numbers to proofread status from English sheet
+    let modelMap: Map<string | number, string | number | boolean> = new Map();
+    for (let i = 1; i < valuesEN.length; i++) {
+        let model = valuesEN[i][modelColEN];
+        let proofreadStatus = valuesEN[i][proofreadColEN];
+        modelMap.set(model, proofreadStatus);
+    }
+
+    // Update French sheet based on English sheet values
+    for (let j = 1; j < valuesFR.length; j++) {
+        let modelFR = valuesFR[j][modelColFR];
+        if (modelMap.has(modelFR) && modelMap.get(modelFR) === "No") {
+            valuesFR[j][proofreadColFR] = "No"; // Update to No
+        }
+    }
+
+    // Write back updated values to the French sheet
+    rangeFR.setValues(valuesFR);
+    console.log("Proofread status updated successfully.");
+}

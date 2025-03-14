@@ -1,0 +1,88 @@
+function main(workbook: ExcelScript.Workbook) {
+    // Define worksheet names
+    const proofreadSheetName: string = "Proofread English";
+    const germanSheetName: string = "Proofread German";
+    const frenchSheetName: string = "Proofread French";
+    const masterSheetName: string = "EN - Master of Files";
+    const proofreadKeyColumnHeader: string = "model #/status";
+    const masterKeyColumnHeader: string = "style number";
+    const excludeString: string = "/Project Manager";
+
+    // Get worksheets
+    let proofreadSheet = workbook.getWorksheet(proofreadSheetName);
+    let germanSheet = workbook.getWorksheet(germanSheetName);
+    let frenchSheet = workbook.getWorksheet(frenchSheetName);
+    let masterSheet = workbook.getWorksheet(masterSheetName);
+
+    if (!proofreadSheet || !masterSheet || !germanSheet || !frenchSheet) {
+        console.log("One or more sheets not found.");
+        return;
+    }
+
+    // Get used ranges
+    let proofreadRange = proofreadSheet.getUsedRange();
+    let masterRange = masterSheet.getUsedRange();
+    if (!proofreadRange || !masterRange) return;
+
+    let proofreadValues = proofreadRange.getValues();
+    let masterValues = masterRange.getValues();
+
+    // Normalize headers
+    function normalizeHeader(header: string | number | boolean): string {
+        return header.toString().trim().replace(/\s+/g, " ").toLowerCase();
+    }
+
+    function normalizeValue(value: string | number | boolean): string {
+        return value ? value.toString().trim().replace(excludeString, "").trim() : "";
+    }
+
+    let proofreadHeaders = proofreadValues[0].map(header => normalizeHeader(header));
+    let masterHeaders = masterValues[0].map(header => normalizeHeader(header));
+
+    let proofreadKeyColIndex = proofreadHeaders.indexOf(normalizeHeader(proofreadKeyColumnHeader));
+    let masterKeyColIndex = masterHeaders.indexOf(normalizeHeader(masterKeyColumnHeader));
+
+    if (proofreadKeyColIndex === -1 || masterKeyColIndex === -1) {
+        console.log("Key column not found in one or both sheets.");
+        return;
+    }
+
+    let masterIndexMap: Map<string, number> = new Map();
+    for (let i = 1; i < masterValues.length; i++) {
+        let key = normalizeValue(masterValues[i][masterKeyColIndex]);
+        if (key) {
+            masterIndexMap.set(key, i);
+        }
+    }
+
+    let redCells: [number, number][] = [];
+
+    // Compare values and highlight mismatches in Proofread English
+    for (let i = 1; i < proofreadValues.length; i++) {
+        let proofreadKey = normalizeValue(proofreadValues[i][proofreadKeyColIndex]);
+        if (proofreadKey && masterIndexMap.has(proofreadKey)) {
+            let masterRowIndex = masterIndexMap.get(proofreadKey) as number;
+
+            for (let j = 0; j < proofreadHeaders.length; j++) {
+                let columnName = proofreadHeaders[j];
+                let masterColIndexMatch = masterHeaders.indexOf(columnName);
+
+                if (masterColIndexMatch !== -1) {
+                    let proofreadCellValue = normalizeValue(proofreadValues[i][j]);
+                    let masterCellValue = normalizeValue(masterValues[masterRowIndex][masterColIndexMatch]);
+
+                    if (proofreadCellValue !== masterCellValue) {
+                        proofreadSheet.getCell(i, j).getFormat().getFill().setColor("#FF0000");
+                        redCells.push([i, j]);
+                    }
+                }
+            }
+        }
+    }
+
+    // Propagate red formatting to German and French sheets based on identified red cells
+    for (let [row, col] of redCells) {
+        germanSheet.getCell(row, col).getFormat().getFill().setColor("#FF0000");
+        frenchSheet.getCell(row, col).getFormat().getFill().setColor("#FF0000");
+    }
+}

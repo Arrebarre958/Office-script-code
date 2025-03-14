@@ -1,0 +1,90 @@
+function main(workbook: ExcelScript.Workbook) {
+  let sheetEN = workbook.getWorksheet("EN - Master of Files");
+  let sheetFR = workbook.getWorksheet("FR - Master of files");
+  let sheetDE = workbook.getWorksheet("DE - Master of files");
+  let sheetMaster = workbook.getWorksheet("MasterFileEnglish");
+
+  if (!sheetEN || !sheetFR || !sheetDE || !sheetMaster) {
+    console.log("One or more sheets are missing.");
+    return;
+  }
+
+  // Get data ranges
+  let rangeEN = sheetEN.getUsedRange();
+  let valuesEN: (string | number | boolean)[][] = rangeEN.getValues();
+  let headersEN = valuesEN[0];
+
+  let rangeMaster = sheetMaster.getUsedRange();
+  let valuesMaster: (string | number | boolean)[][] = rangeMaster.getValues();
+  let headersMaster = valuesMaster[0];
+
+  // Identify column indexes with correct names
+  let styleColEN = headersEN.indexOf("Style number");
+  let modelColMaster = headersMaster.indexOf("Model #/Status");
+  let modelNameColMaster = headersMaster.indexOf("Model name");
+  let modelNameColEN = headersEN.indexOf("Model Name");
+
+  if (styleColEN === -1 || modelColMaster === -1 || modelNameColMaster === -1 || modelNameColEN === -1) {
+    console.log("Required columns not found.");
+    return;
+  }
+
+  // Function to normalize model numbers by removing "/Project Manager"
+  function normalizeModelNumber(model: string | number): string | number {
+    if (typeof model === "string") {
+      return model.replace("/Project Manager", "").trim();
+    }
+    return model;
+  }
+
+  // Create a set of existing style numbers in each language sheet
+  function getExistingStyles(sheet: ExcelScript.Worksheet): Set<string | number> {
+    let range = sheet.getUsedRange();
+    let values = range ? range.getValues() : [];
+    let styles = new Set<string | number>();
+    for (let i = 1; i < values.length; i++) {
+      styles.add(normalizeModelNumber(values[i][styleColEN]));
+    }
+    return styles;
+  }
+
+  let existingStylesEN = getExistingStyles(sheetEN);
+  let existingStylesFR = getExistingStyles(sheetFR);
+  let existingStylesDE = getExistingStyles(sheetDE);
+
+  // Identify missing entries from MasterFileEnglish
+  let newEntriesEN: (string | number | boolean)[][] = [];
+  let newEntriesFR: (string | number | boolean)[][] = [];
+  let newEntriesDE: (string | number | boolean)[][] = [];
+
+  for (let j = 1; j < valuesMaster.length; j++) {
+    let modelNumber = normalizeModelNumber(valuesMaster[j][modelColMaster]);
+    let modelName = valuesMaster[j][modelNameColMaster];
+
+    if (!existingStylesEN.has(modelNumber)) {
+      newEntriesEN.push([modelNumber, modelName]);
+    }
+    if (!existingStylesFR.has(modelNumber)) {
+      newEntriesFR.push([modelNumber, modelName]);
+    }
+    if (!existingStylesDE.has(modelNumber)) {
+      newEntriesDE.push([modelNumber, modelName]);
+    }
+  }
+
+  // Function to append new rows
+  function appendNewRows(sheet: ExcelScript.Worksheet, newEntries: (string | number | boolean)[][]) {
+    if (newEntries.length > 0) {
+      let range = sheet.getUsedRange();
+      let startRow = range ? range.getRowCount() : 1;
+      let targetRange = sheet.getRangeByIndexes(startRow, styleColEN, newEntries.length, 2);
+      targetRange.setValues(newEntries);
+      console.log(`${newEntries.length} new entries added to ${sheet.getName()}.`);
+    }
+  }
+
+  // Append new rows to all sheets
+  appendNewRows(sheetEN, newEntriesEN);
+  appendNewRows(sheetFR, newEntriesFR);
+  appendNewRows(sheetDE, newEntriesDE);
+}

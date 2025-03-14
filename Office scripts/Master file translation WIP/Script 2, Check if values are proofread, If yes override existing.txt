@@ -1,0 +1,98 @@
+function main(workbook: ExcelScript.Workbook) {
+    // Get the sheets
+    let proofreadSheet = workbook.getWorksheet("Proofread English");
+    let masterSheet = workbook.getWorksheet("EN - Master of Files");
+
+    if (!proofreadSheet || !masterSheet) {
+        console.log("One or both sheets not found.");
+        return;
+    }
+
+    // Get the used range for headers
+    let proofreadRange = proofreadSheet.getUsedRange();
+    let masterRange = masterSheet.getUsedRange();
+    if (!proofreadRange || !masterRange) return;
+
+    let proofreadValues: (string | number | boolean)[][] = proofreadRange.getValues();
+    let masterValues: (string | number | boolean)[][] = masterRange.getValues();
+
+    // Normalize headers for comparison
+    function normalizeHeader(header: string | number | boolean): string {
+        return header.toString().trim().replace(/\s+/g, " ").toLowerCase();
+    }
+
+    // Normalize cell values for comparison and remove '/Project Manager'
+    function normalizeValue(value: string | number | boolean): string {
+        return value ? value.toString().trim().replace(/\/Project Manager/g, '').replace(/\s+/g, " ") : "";
+    }
+
+    // Find the header row (assumed to be the first row)
+    let proofreadHeaders = proofreadValues[0].map(header => normalizeHeader(header));
+    let masterHeaders = masterValues[0].map(header => normalizeHeader(header));
+
+    console.log("Proofread Headers:", proofreadHeaders);
+    console.log("Master Headers:", masterHeaders);
+
+    // Locate key columns using flexible matching
+    function findColumnIndex(headers: string[], possibleNames: string[]): number {
+        return headers.findIndex(header => possibleNames.includes(header));
+    }
+
+    let proofreadColIndex = findColumnIndex(proofreadHeaders, ["model #/status", "model #/status ", "model#/status"]);
+    let proofreadCheckColIndex = findColumnIndex(proofreadHeaders, ["proofread?", "proofread", "proofread status"]);
+    let masterColIndex = findColumnIndex(masterHeaders, ["style number", "style no", "style #"]);
+
+    console.log("Indexes - Model #/Status:", proofreadColIndex, "Proofread?:", proofreadCheckColIndex, "Style Number:", masterColIndex);
+
+    if (proofreadColIndex === -1 || proofreadCheckColIndex === -1 || masterColIndex === -1) {
+        console.log("One or more required columns not found.");
+        return;
+    }
+
+    // Create a map of Model #/Status to row indexes in proofread sheet, ignoring '/Project Manager'
+    let proofreadIndexMap = new Map<string, number>();
+    for (let i = 1; i < proofreadValues.length; i++) {
+        let key = normalizeValue(proofreadValues[i][proofreadColIndex]);
+        if (key) {
+            proofreadIndexMap.set(key, i);
+        }
+    }
+
+    // Iterate through master sheet and update values from proofread sheet
+    for (let i = 1; i < masterValues.length; i++) {
+        let masterKey = normalizeValue(masterValues[i][masterColIndex]);
+
+        if (masterKey && proofreadIndexMap.has(masterKey)) {
+            let proofreadRowIndex = proofreadIndexMap.get(masterKey);
+            if (proofreadRowIndex !== undefined) {
+                let proofreadStatus = normalizeValue(proofreadValues[proofreadRowIndex][proofreadCheckColIndex]).toLowerCase();
+
+                if (proofreadStatus === "yes") {
+                    console.log(`Updating row ${i} in master for matched key: ${masterKey}`);
+                    for (let j = 0; j < proofreadHeaders.length; j++) {
+                        let columnName = proofreadHeaders[j];
+                        let masterColIndexMatch = masterHeaders.indexOf(columnName);
+
+                        // Ensure we don't override 'Style Number' column
+                        if (masterColIndexMatch !== -1 && columnName !== "style number") {
+                            let cellValue = proofreadValues[proofreadRowIndex][j];
+                            let currentMasterValue = masterValues[i][masterColIndexMatch];
+                            
+                            // **Skip updating if the values are already the same**
+                            if (normalizeValue(cellValue) !== normalizeValue(currentMasterValue)) {
+                                // Force text format to prevent Excel misinterpretation
+                                if (typeof cellValue === "string" && cellValue.startsWith("=")) {
+                                    masterSheet.getCell(i, masterColIndexMatch).setNumberFormat("@"); // Set format to text
+                                    masterSheet.getCell(i, masterColIndexMatch).setValue(`'${cellValue}`); // Force as text
+                                } else {
+                                    masterSheet.getCell(i, masterColIndexMatch).setNumberFormat("@"); // Set format to text
+                                    masterSheet.getCell(i, masterColIndexMatch).setValue(cellValue);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

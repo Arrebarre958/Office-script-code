@@ -1,0 +1,86 @@
+function main(workbook: ExcelScript.Workbook) {
+  // Get the sheets
+  let proofreadSheet = workbook.getWorksheet("Proofread English");
+  let masterSheet = workbook.getWorksheet("MasterFileEnglish");
+
+  if (!proofreadSheet || !masterSheet) {
+    console.log("One or both sheets not found.");
+    return;
+  }
+
+  // Get the used range for headers
+  let proofreadRange = proofreadSheet.getUsedRange();
+  let masterRange = masterSheet.getUsedRange();
+  if (!proofreadRange || !masterRange) return;
+
+  let proofreadValues: (string | number | boolean)[][] = proofreadRange.getValues();
+  let masterValues: (string | number | boolean)[][] = masterRange.getValues();
+
+  // Normalize headers for comparison
+  function normalizeHeader(header: string | number | boolean): string {
+    return header.toString().trim().replace(/\s+/g, " ").toLowerCase();
+  }
+
+  // Normalize cell values and remove '/Project Manager'
+  function normalizeValue(value: string | number | boolean): string {
+    return value ? value.toString().trim().replace(/\/Project Manager/g, '').replace(/\s+/g, " ") : "";
+  }
+
+  // Find the header row (assumed to be the first row)
+  let proofreadHeaders = proofreadValues[0].map(header => normalizeHeader(header));
+  let masterHeaders = masterValues[0].map(header => normalizeHeader(header));
+
+  console.log("Proofread Headers:", proofreadHeaders);
+  console.log("Master Headers:", masterHeaders);
+
+  // Locate the "Model #/Status" column in both sheets
+  let proofreadColIndex = proofreadHeaders.indexOf("model #/status");
+  let masterColIndex = masterHeaders.indexOf("model #/status");
+
+  if (proofreadColIndex === -1 || masterColIndex === -1) {
+    console.log("'Model #/Status' column not found in one or both sheets.");
+    return;
+  }
+
+  // Create a map of Model #/Status to row indexes in MasterFileEnglish
+  let masterIndexMap = new Map<string, number>();
+  for (let i = 1; i < masterValues.length; i++) {
+    let key = normalizeValue(masterValues[i][masterColIndex]);
+    if (key) {
+      masterIndexMap.set(key, i);
+    }
+  }
+
+  // Iterate through Proofread English and update values
+  for (let i = 1; i < proofreadValues.length; i++) {
+    let proofreadKey = normalizeValue(proofreadValues[i][proofreadColIndex]);
+
+    if (proofreadKey && masterIndexMap.has(proofreadKey)) {
+      let masterRowIndex = masterIndexMap.get(proofreadKey);
+      if (masterRowIndex !== undefined) {
+        console.log(`Updating row ${i} in Proofread English for matched key: ${proofreadKey}`);
+        for (let j = 0; j < proofreadHeaders.length; j++) {
+          let columnName = proofreadHeaders[j];
+          let masterColIndexMatch = masterHeaders.indexOf(columnName);
+
+          if (masterColIndexMatch !== -1) {
+            let cellValue = masterValues[masterRowIndex][masterColIndexMatch];
+            let currentProofreadValue = proofreadValues[i][j];
+
+            // **Skip updating if values are already the same**
+            if (normalizeValue(cellValue) !== normalizeValue(currentProofreadValue)) {
+              // Force text format to prevent Excel misinterpretation
+              if (typeof cellValue === "string" && cellValue.startsWith("=")) {
+                proofreadSheet.getCell(i, j).setNumberFormat("@"); // Set format to text
+                proofreadSheet.getCell(i, j).setValue(`'${cellValue}`); // Force as text
+              } else {
+                proofreadSheet.getCell(i, j).setNumberFormat("@"); // Set format to text
+                proofreadSheet.getCell(i, j).setValue(cellValue);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
