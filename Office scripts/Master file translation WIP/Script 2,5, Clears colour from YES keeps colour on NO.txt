@@ -1,0 +1,35 @@
+function main(workbook: ExcelScript.Workbook) {
+  // Get the proofread sheets
+  let proofreadSheets = [
+    workbook.getWorksheet("Proofread English"),
+    workbook.getWorksheet("Proofread French"),
+    workbook.getWorksheet("Proofread German")
+  ];
+
+  proofreadSheets.forEach(sheet => {
+    if (!sheet) return;
+
+    let sheetRange = sheet.getUsedRange();
+    if (!sheetRange) return;
+
+    let sheetValues = sheetRange.getValues();
+    let sheetHeaders = sheetValues[0].map(header => header.toString().trim());
+    let proofreadColIndex = sheetHeaders.indexOf("Proofread?");
+
+    if (proofreadColIndex === -1) {
+      console.log(`Column 'Proofread?' not found in ${sheet.getName()}.`);
+      return;
+    }
+
+    // Loop through rows and clear formatting if "Proofread?" is "Yes"
+    for (let i = 1; i < sheetValues.length; i++) {
+      if (sheetValues[i][proofreadColIndex] === "Yes") {
+        let rowRange = sheet.getRangeByIndexes(i, 0, 1, sheetHeaders.length);
+        rowRange.getFormat().getFill().clear(); // Clears cell fill color
+        rowRange.getFormat().getFont().setColor("#000000"); // Sets font color to black
+        rowRange.getFormat().getFont().setBold(false); // Resets bold
+        rowRange.getFormat().getFont().setItalic(false); // Resets italic
+      }
+    }
+  });
+}

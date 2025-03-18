@@ -1,0 +1,66 @@
+function main(workbook: ExcelScript.Workbook) {
+  let masterSheets: { [key: string]: string } = {
+    "Proofread english": "EN - Master of files",
+    "Proofread french": "FR - Master of files",
+    "Proofread german": "DE - Master of files"
+  };
+  
+  for (let [proofSheetName, masterSheetName] of Object.entries(masterSheets)) {
+    let proofSheet = workbook.getWorksheet(proofSheetName);
+    let masterSheet = workbook.getWorksheet(masterSheetName);
+    
+    if (!proofSheet || !masterSheet) continue;
+    
+    let proofRange = proofSheet.getUsedRange();
+    let masterRange = masterSheet.getUsedRange();
+    if (!proofRange || !masterRange) continue;
+    
+    let proofData: (string | number | boolean | null)[][] = proofRange.getValues();
+    let masterData: (string | number | boolean | null)[][] = masterRange.getValues();
+    
+    let proofHeaders: string[] = proofData[0].map((val) => String(val));
+    let masterHeaders: string[] = masterData[0].map((val) => String(val));
+    
+    let proofStyleIndex: number = proofHeaders.indexOf("Model #/Status");
+    let masterStyleIndex: number = masterHeaders.indexOf("Style number");
+    let proofreadIndex: number = proofHeaders.indexOf("Proofread?");
+    
+    if (proofStyleIndex === -1 || masterStyleIndex === -1 || proofreadIndex === -1) continue;
+    
+    let proofMap: Map<string, number> = new Map();
+    for (let i = 1; i < proofData.length; i++) {
+      let styleNumber = (proofData[i][proofStyleIndex] ?? "").toString().split("/")[0].trim();
+      if (styleNumber) proofMap.set(styleNumber, i);
+    }
+    
+    let masterMap: Map<string, number> = new Map();
+    for (let i = 1; i < masterData.length; i++) {
+      let styleNumber = (masterData[i][masterStyleIndex] ?? "").toString();
+      if (styleNumber) masterMap.set(styleNumber, i);
+    }
+    
+    for (let [styleNumber, proofRowIndex] of proofMap.entries()) {
+      if (!masterMap.has(styleNumber)) continue;
+      
+      let masterRowIndex: number = masterMap.get(styleNumber) as number;
+      let match: boolean = true;
+      
+      for (let j = 1; j < proofHeaders.length; j++) {
+        if (j === proofStyleIndex || j === proofreadIndex) continue;
+        
+        let masterColIndex: number = masterHeaders.indexOf(proofHeaders[j]);
+        if (masterColIndex === -1) continue;
+        
+        let proofValue = (proofData[proofRowIndex][j] ?? "").toString();
+        let masterValue = (masterData[masterRowIndex][masterColIndex] ?? "").toString();
+        
+        if (proofValue !== masterValue) {
+          match = false;
+          break;
+        }
+      }
+      
+      proofSheet.getCell(proofRowIndex, proofreadIndex).setValue(match ? "Yes" : "No");
+    }
+  }
+}
