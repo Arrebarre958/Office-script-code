@@ -1,103 +1,114 @@
 function main(workbook: ExcelScript.Workbook) {
-	let selectedSheet = workbook.getWorksheet("NA AX stock");
-	// Set format for range J:J on selectedSheet
-	selectedSheet.getRange("J:J").setNumberFormatLocal("@");
-	let _EU_AX_stock = workbook.getWorksheet("EU AX stock");
-	// Set format for range J:J on _EU_AX_stock
-	_EU_AX_stock.getRange("J:J").setNumberFormatLocal("@");
-	let centra_Export = workbook.getWorksheet("Centra Export");
-	// Set format for range T:T on centra_Export
-	centra_Export.getRange("T:T").setNumberFormatLocal("@");
-	// Add a new table at extended range obtained by extending right, then down from range A1 on centra_Export
-	let newTable = workbook.addTable(centra_Export.getRange("A1").getExtendedRange(ExcelScript.KeyboardDirection.right).getExtendedRange(ExcelScript.KeyboardDirection.down), true);
-	// Table style applied on table newTable
-	newTable.setPredefinedTableStyle("TableStyleMedium7");
-	// Insert at range W:W on centra_Export, move existing cells right
-	centra_Export.getRange("W:W").insert(ExcelScript.InsertShiftDirection.right);
-	// Set range W1:W2 on centra_Export
-	centra_Export.getRange("W1:W2").setValues([["EU STOCK IN AX"],[""]]);
-	// Insert at range C:C on centra_Export, move existing cells right
-    // Set range W1:W2 on centra_Export
-	centra_Export.getRange("C:C").insert(ExcelScript.InsertShiftDirection.right);
-	// Set width of column(s) at range C:C on centra_Export to 19.1
-	centra_Export.getRange("C:C").getFormat().setColumnWidth(19.1);
-	// Set range C2 on centra_Export
-	centra_Export.getRange("C2").setFormula("=B2&I2&N2");
-	// Add a new table at extended range obtained by extending right, then down from range A1 on _EU_AX_stock
-	let newTable_1 = workbook.addTable(_EU_AX_stock.getRange("A1").getExtendedRange(ExcelScript.KeyboardDirection.right).getExtendedRange(ExcelScript.KeyboardDirection.down), true);
-	// Table style applied on table newTable_1
-	newTable_1.setPredefinedTableStyle("TableStyleMedium7");
-	// Insert at range C:C on _EU_AX_stock, move existing cells right
-	_EU_AX_stock.getRange("C:C").insert(ExcelScript.InsertShiftDirection.right);
-	// Set range C1:C2 on _EU_AX_stock
-	_EU_AX_stock.getRange("C1:C2").setFormulas([["FULLSKU"],["=B2&G2&J2"]]);
-	// Add a new table at extended range obtained by extending right, then down from range A1 on selectedSheet
-	let newTable_2 = workbook.addTable(selectedSheet.getRange("A1").getExtendedRange(ExcelScript.KeyboardDirection.right).getExtendedRange(ExcelScript.KeyboardDirection.down), true);
-	// Table style applied on table newTable_2
-	newTable_2.setPredefinedTableStyle("TableStyleMedium7");
-	// Insert at range C:C on selectedSheet, move existing cells right
-	selectedSheet.getRange("C:C").insert(ExcelScript.InsertShiftDirection.right);
-	// Set range C1:C2 on selectedSheet
-	selectedSheet.getRange("C1:C2").setFormulas([["FULLSKU"],["=B2&G2&J2"]]);
-	// Set range X2 on centra_Export
-	centra_Export.getRange("X2").setFormula("=XLOOKUP([@Column1],'EU AX stock'!C:C,'EU AX stock'!M:M,\"0\")");
-	// Insert at range Z:Z on centra_Export, move existing cells right
-	centra_Export.getRange("Z:Z").insert(ExcelScript.InsertShiftDirection.right);
-    centra_Export.getRange("Z1:Z2").setValues([["NA STOCK IN AX"],[""]]);
-	// Set range Z1:Z2 on centra_Export
-	centra_Export.getRange("Z2").setFormula("=XLOOKUP([@Column1],'NA AX stock'!C:C,'NA AX stock'!M:M,\"0\")");
-	// Insert at range AA:AA on centra_Export, move existing cells right
-	centra_Export.getRange("AA:AA").insert(ExcelScript.InsertShiftDirection.right);
-	// Set range AA1 on centra_Export
-	centra_Export.getRange("AA1").setValue("Are they the same in NA?");
-	// Insert at range Y:Y on centra_Export, move existing cells right
-	centra_Export.getRange("Y:Y").insert(ExcelScript.InsertShiftDirection.right);
-	// Set range Y1:Y2 on centra_Export
-	centra_Export.getRange("Y1:Y2").setFormulas([["Are they the same in EU?"],["=IF(W2=X2,\"Yes\",\"No\")"]]);
-	// Paste to extended range obtained by extending down from range X2 on centra_Export from extended range obtained by extending down from range X2 on centra_Export
-	centra_Export.getRange("X2").getExtendedRange(ExcelScript.KeyboardDirection.down).copyFrom(centra_Export.getRange("X2").getExtendedRange(ExcelScript.KeyboardDirection.down), ExcelScript.RangeCopyType.values, false, false);
-	// Set format for range W:X on centra_Export
-	centra_Export.getRange("W:X").setNumberFormatLocal("@");
-	// Set range Y2:Y3 on centra_Export
+    const centraSheet = workbook.getWorksheet("Centra export");
+    const euSheet = workbook.getWorksheet("EU AX stock");
+    const naSheet = workbook.getWorksheet("NA AX stock");
+    const apacSheet = workbook.getWorksheet("APAC AX stock");
 
-	centra_Export.getRange("AB1:AB2").setFormulas([["Are they the same in NA?"],["=IF(Z2=AA2,\"Yes\",\"No\")"]]);
-	// Paste to extended range obtained by extending down from range AA2 on centra_Export from extended range obtained by extending down from range AA2 on centra_Export
-	centra_Export.getRange("AA2").getExtendedRange(ExcelScript.KeyboardDirection.down).copyFrom(centra_Export.getRange("AA2").getExtendedRange(ExcelScript.KeyboardDirection.down), ExcelScript.RangeCopyType.values, false, false);
-	// Set width of column(s) at range AB:AB on centra_Export to 29.5
-	centra_Export.getRange("AB:AB").getFormat().setColumnWidth(29.5);
-	// Set fill color to #DAE9F8 for range X:X on centra_Export
-	centra_Export.getRange("Y:Y").getFormat().getFill().setColor("#DAE9F8");
-	// Set fill color to #DAE9F8 for range AB:AB on centra_Export
-	centra_Export.getRange("AB:AB").getFormat().getFill().setColor("#DAE9F8");
-	// Set font color to "#000000" for range AB1 on centra_Export
-	centra_Export.getRange("AB1").getFormat().getFont().setColor("#000000");
-	// Set font color to "#000000" for range X1 on centra_Export
-	centra_Export.getRange("X1").getFormat().getFont().setColor("#000000");
-	// Set width of column(s) at range X:X on centra_Export to 24.6
-	centra_Export.getRange("X:X").getFormat().setColumnWidth(24.6);
-
-
-
-
-
-    let columns = ["W", "X", "Z", "AA"];
-
-    for (let col of columns) {
-        let range = centra_Export.getRange(`${col}1:${col}1000`); // Adjust row range if needed
-        let values = range.getValues();
-
-        for (let i = 0; i < values.length; i++) {
-            let value = values[i][0];
-
-            // Check if the value is a string and can be converted to a number
-            if (typeof value === "string" && !isNaN(Number(value))) {
-                values[i][0] = Number(value); // Convert text to number
-            }
-        }
-
-        // Set the updated values back to the range
-        range.setValues(values);
+    if (!centraSheet || !euSheet || !naSheet || !apacSheet) {
+        throw new Error("One or more required sheets are missing.");
     }
+
+    const centraData = centraSheet.getUsedRange()?.getValues();
+    if (!centraData) return;
+
+    let headers = centraData[0] as string[];
+    const skuIndex = headers.indexOf("SKU");
+    const variantIndex = headers.indexOf("Variant SKU");
+    const sizeIndex = headers.indexOf("Size SKU Suffix");
+    const sidneyIndex = headers.indexOf("Sidney");
+    const slcIndex = headers.indexOf("Salt Lake City");
+    const netherlandsIndex = headers.indexOf("Netherlands");
+
+    if (skuIndex === -1 || variantIndex === -1 || sizeIndex === -1 || sidneyIndex === -1 || slcIndex === -1 || netherlandsIndex === -1) {
+        throw new Error("Missing required columns in Centra export sheet.");
+    }
+
+    // Add new columns at correct positions
+    headers = [...headers];
+    headers.splice(sidneyIndex, 0, "APAC AX");
+    headers.splice(slcIndex, 0, "NA AX");
+    headers.splice(netherlandsIndex, 0, "EU AX");
+
+    const euMap = createLookupMap(getSheetData(euSheet));
+    const naMap = createLookupMap(getSheetData(naSheet));
+    const apacMap = createLookupMap(getSheetData(apacSheet));
+
+    // Prepare updated data
+    const updatedData: string[][] = [headers];
+
+    for (let i = 1; i < centraData.length; i++) {
+        const row = [...centraData[i]];
+        const key = `${row[skuIndex]}${row[variantIndex]}${row[sizeIndex]}`.trim();
+
+        // Insert values into the correct positions
+        row.splice(sidneyIndex, 0, apacMap.get(key) || "");
+        row.splice(slcIndex, 0, naMap.get(key) || "");
+        row.splice(netherlandsIndex, 0, euMap.get(key) || "");
+
+        updatedData.push(row);
+    }
+
+    // Batch write all updated data at once
+    centraSheet.getRangeByIndexes(0, 0, updatedData.length, headers.length).setValues(updatedData);
+
+    // Run comparison and formatting
+    applyConditionalFormatting(centraSheet);
 }
 
+function getSheetData(sheet: ExcelScript.Worksheet): string[][] {
+    return sheet.getUsedRange()?.getValues() as string[][] || [];
+}
 
+function createLookupMap(data: string[][]): Map<string, string> {
+    if (data.length < 2) return new Map();
+
+    const headers = data[0];
+    const idIndex = headers.indexOf("product-id");
+    const allocationIndex = headers.indexOf("ns1:allocation");
+
+    if (idIndex === -1 || allocationIndex === -1) return new Map();
+
+    return new Map(
+        data.slice(1).map(row => [row[idIndex].trim(), row[allocationIndex]?.toString().trim() || ""])
+    );
+}
+
+function applyConditionalFormatting(sheet: ExcelScript.Worksheet) {
+    let range = sheet.getUsedRange();
+    let values = range.getValues();
+
+    // Find the column indices
+    let headers = values[0];
+    let colIndexes = {
+        eu: headers.indexOf("EU AX"),
+        euCheck: headers.indexOf("Netherlands"),
+        na: headers.indexOf("NA AX"),
+        naCheck: headers.indexOf("Salt Lake City"),
+        apac: headers.indexOf("APAC AX"),
+        apacCheck: headers.indexOf("Sidney")
+    };
+
+    if (Object.values(colIndexes).includes(-1)) {
+        console.log("One or more required columns are missing.");
+        return;
+    }
+
+    for (let i = 1; i < values.length; i++) { // Start from row 1 to skip headers
+        let comparisons = [
+            { col1: colIndexes.eu, col2: colIndexes.euCheck },
+            { col1: colIndexes.na, col2: colIndexes.naCheck },
+            { col1: colIndexes.apac, col2: colIndexes.apacCheck }
+        ];
+
+        for (let pair of comparisons) {
+            let val1 = values[i][pair.col1]?.toString().trim() || "";
+            let val2 = values[i][pair.col2]?.toString().trim() || "";
+
+            let match = (val1 === val2) || (!val1 && !val2);
+            let color = match ? "#C6EFCE" : "#FFC7CE"; // Green for match, Red for mismatch
+
+            // Apply formatting to the first column in the pair
+            sheet.getCell(i, pair.col1).getFormat().getFill().setColor(color);
+        }
+    }
+}
