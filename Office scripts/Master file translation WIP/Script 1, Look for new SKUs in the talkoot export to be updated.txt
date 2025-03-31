@@ -1,84 +1,94 @@
 function main(workbook: ExcelScript.Workbook) {
-    // Get the sheets
-    let proofreadSheets: ExcelScript.Worksheet[] = [
-        workbook.getWorksheet("Proofread English"),
-        workbook.getWorksheet("Proofread French"),
-        workbook.getWorksheet("Proofread German")
-    ];
-    let masterSheet: ExcelScript.Worksheet = workbook.getWorksheet("MasterFileEnglish");
+  let proofreadSheets: ExcelScript.Worksheet[] = [
+    workbook.getWorksheet("Proofread English"),
+    workbook.getWorksheet("Proofread French"),
+    workbook.getWorksheet("Proofread German")
+  ];
+  let masterSheet: ExcelScript.Worksheet = workbook.getWorksheet("MasterFileEnglish");
 
-    if (proofreadSheets.includes(undefined) || !masterSheet) {
-        console.log("One or more sheets not found.");
-        return;
+  if (proofreadSheets.includes(undefined) || !masterSheet) {
+    console.log("One or more sheets not found.");
+    return;
+  }
+
+  let masterRange = masterSheet.getUsedRange();
+  if (!masterRange) return;
+
+  let masterValues = masterRange.getValues();
+  let masterHeaders = masterValues[0].map(h => h.toString().trim());
+  let masterColIndex = masterHeaders.indexOf("Model #/Status");
+
+  if (masterColIndex === -1) {
+    console.log("Required column 'Model #/Status' not found in master sheet.");
+    return;
+  }
+
+  function cleanValue(value: string | number | boolean): string {
+    return value ? value.toString().trim().replace(/\/Project Manager/g, '').trim() : "";
+  }
+
+  let masterModelNumbers = masterValues.slice(1).map(row => cleanValue(row[masterColIndex]));
+
+  proofreadSheets.forEach(sheet => {
+    let sheetRange = sheet.getUsedRange();
+    if (!sheetRange) return;
+
+    let sheetValues = sheetRange.getValues();
+    let sheetHeaders = sheetValues[0].map(h => h.toString().trim());
+    let sheetModelIndex = sheetHeaders.indexOf("Model #/Status");
+    let sheetProofreadIndex = sheetHeaders.indexOf("Proofread?");
+
+    if (sheetModelIndex === -1) {
+      console.log(`Column 'Model #/Status' not found in ${sheet.getName()}`);
+      return;
     }
 
-    // Get the used range for headers
-    let masterRange = masterSheet.getUsedRange();
-    if (!masterRange) return;
-
-    let masterValues: (string | number | boolean)[][] = masterRange.getValues();
-    let masterHeaders: string[] = masterValues[0].map(header => header.toString().trim());
-
-    let masterColIndex: number = masterHeaders.indexOf("Model #/Status");
-    
-    if (masterColIndex === -1) {
-        console.log("Required column 'Model #/Status' not found in master sheet.");
-        return;
+    // Add "Proofread?" column if missing
+    if (sheetProofreadIndex === -1) {
+      sheet.getRangeByIndexes(0, sheetHeaders.length, 1, 1).setValues([["Proofread?"]]);
+      sheetHeaders.push("Proofread?");
     }
 
-    // Helper function to clean values
-    function cleanValue(value: string | number | boolean): string {
-        return value ? value.toString().trim().replace(/\/Project Manager/g, '').trim() : "";
-    }
+    const updatedSheetRange = sheet.getUsedRange();
+    const updatedValues = updatedSheetRange.getValues();
+    const updatedProofreadIndex = sheetHeaders.indexOf("Proofread?");
+    let existingModels = new Set(updatedValues.slice(1).map(row => cleanValue(row[sheetModelIndex])));
 
-    let masterModelNumbers: string[] = masterValues.slice(1).map(row => cleanValue(row[masterColIndex]));
+    let firstEmptyRow = updatedValues.findIndex((row, index) => index > 0 && !row[sheetModelIndex]);
+    if (firstEmptyRow === -1) firstEmptyRow = updatedValues.length;
 
-    proofreadSheets.forEach(sheet => {
-        let sheetRange = sheet.getUsedRange();
-        if (!sheetRange) return;
+    let newRows: (string | number | boolean)[][] = [];
 
-        let sheetValues: (string | number | boolean)[][] = sheetRange.getValues();
-        let sheetHeaders: string[] = sheetValues[0].map(header => header.toString().trim());
-        let sheetModelIndex: number = sheetHeaders.indexOf("Model #/Status");
-        let sheetProofreadIndex: number = sheetHeaders.indexOf("Proofread?");
+    masterValues.slice(1).forEach(row => {
+      const modelNumber = cleanValue(row[masterColIndex]);
+      if (modelNumber && !existingModels.has(modelNumber)) {
+        let newRow: (string | number | boolean)[] = new Array(sheetHeaders.length).fill("");
 
-        if (sheetModelIndex === -1) {
-            console.log(`Required column 'Model #/Status' not found in ${sheet.getName()}.`);
-            return;
-        }
-
-        // If 'Proofread?' column doesn't exist, add it at the end
-        if (sheetProofreadIndex === -1) {
-            sheet.getRangeByIndexes(0, sheetHeaders.length, 1, 1).setValues(["Proofread?"]);
-            sheetProofreadIndex = sheetHeaders.length; // Newly added column index
-        }
-
-        let existingModels = new Set(sheetValues.slice(1).map(row => cleanValue(row[sheetModelIndex])));
-        let firstEmptyRow: number = sheetValues.findIndex((row, index) => index > 0 && !row[sheetModelIndex]);
-        if (firstEmptyRow === -1) firstEmptyRow = sheetValues.length;
-
-        masterValues.slice(1).forEach((row) => {
-            let modelNumber = cleanValue(row[masterColIndex]);
-            if (modelNumber && !existingModels.has(modelNumber)) {
-                let newRow: (string | number | boolean)[] = new Array(sheetHeaders.length).fill("");
-                
-                // Copy matching columns from MasterFileEnglish to Proofread sheet
-                masterHeaders.forEach((header, i) => {
-                    let proofreadColIndex: number = sheetHeaders.indexOf(header);
-                    if (proofreadColIndex !== -1) {
-                        newRow[proofreadColIndex] = row[i];
-                    }
-                });
-                
-                // Set "Proofread?" column to "No"
-                if (sheetProofreadIndex !== -1) {
-                    newRow[sheetProofreadIndex] = "No";
-                }
-                
-                sheet.getRangeByIndexes(firstEmptyRow, 0, 1, newRow.length).setValues([newRow]);
-                existingModels.add(modelNumber);
-                firstEmptyRow++;
-            }
+        masterHeaders.forEach((header, i) => {
+          let colIndex = sheetHeaders.indexOf(header);
+          if (colIndex !== -1) newRow[colIndex] = row[i];
         });
+
+        newRow[updatedProofreadIndex] = "No";
+        newRows.push(newRow);
+        existingModels.add(modelNumber);
+      }
     });
+
+    if (newRows.length > 0) {
+      sheet.getRangeByIndexes(firstEmptyRow, 0, newRows.length, sheetHeaders.length).setValues(newRows);
+    }
+
+    // ✅ Final Check: Force rewrite of "Proofread?" column to help Power Automate commit
+    const latestRange = sheet.getUsedRange();
+    const latestValues = latestRange.getValues();
+
+    for (let i = 1; i < latestValues.length; i++) {
+      if (!latestValues[i][updatedProofreadIndex]) {
+        latestValues[i][updatedProofreadIndex] = "No";
+      }
+    }
+
+    latestRange.setValues(latestValues); // Force Excel to register changes
+  });
 }

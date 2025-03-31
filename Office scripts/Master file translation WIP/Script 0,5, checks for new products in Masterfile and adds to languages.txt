@@ -5,8 +5,8 @@ function main(workbook: ExcelScript.Workbook) {
   let sheetMaster = workbook.getWorksheet("MasterFileEnglish");
 
   if (!sheetEN || !sheetFR || !sheetDE || !sheetMaster) {
-    console.log("One or more sheets are missing.");
-    return;
+      console.log("One or more sheets are missing.");
+      return;
   }
 
   // Get data ranges
@@ -25,27 +25,31 @@ function main(workbook: ExcelScript.Workbook) {
   let modelNameColEN = headersEN.indexOf("Model Name");
 
   if (styleColEN === -1 || modelColMaster === -1 || modelNameColMaster === -1 || modelNameColEN === -1) {
-    console.log("Required columns not found.");
-    return;
+      console.log("Required columns not found.");
+      return;
   }
 
-  // Function to normalize model numbers by removing "/Project Manager"
-  function normalizeModelNumber(model: string | number): string | number {
-    if (typeof model === "string") {
-      return model.replace("/Project Manager", "").trim();
-    }
-    return model;
+  // Function to normalize model numbers for consistent comparison
+  function normalizeModelNumber(model: string | number): string {
+      if (typeof model === "string") {
+          return model.replace("/Project Manager", "").trim().toUpperCase();
+      }
+      return String(model).trim().toUpperCase();
   }
 
-  // Create a set of existing style numbers in each language sheet
-  function getExistingStyles(sheet: ExcelScript.Worksheet): Set<string | number> {
-    let range = sheet.getUsedRange();
-    let values = range ? range.getValues() : [];
-    let styles = new Set<string | number>();
-    for (let i = 1; i < values.length; i++) {
-      styles.add(normalizeModelNumber(values[i][styleColEN]));
-    }
-    return styles;
+  // Function to get existing styles from a sheet
+  function getExistingStyles(sheet: ExcelScript.Worksheet): Set<string> {
+      let range = sheet.getUsedRange();
+      let values = range ? range.getValues() : [];
+      let styles = new Set<string>();
+
+      for (let i = 1; i < values.length; i++) {
+          let styleValue = values[i][styleColEN];
+          if (styleValue !== undefined && styleValue !== null && styleValue !== "") {
+              styles.add(normalizeModelNumber(styleValue));
+          }
+      }
+      return styles;
   }
 
   let existingStylesEN = getExistingStyles(sheetEN);
@@ -58,29 +62,29 @@ function main(workbook: ExcelScript.Workbook) {
   let newEntriesDE: (string | number | boolean)[][] = [];
 
   for (let j = 1; j < valuesMaster.length; j++) {
-    let modelNumber = normalizeModelNumber(valuesMaster[j][modelColMaster]);
-    let modelName = valuesMaster[j][modelNameColMaster];
+      let modelNumber = normalizeModelNumber(valuesMaster[j][modelColMaster]);
+      let modelName = valuesMaster[j][modelNameColMaster];
 
-    if (!existingStylesEN.has(modelNumber)) {
-      newEntriesEN.push([modelNumber, modelName]);
-    }
-    if (!existingStylesFR.has(modelNumber)) {
-      newEntriesFR.push([modelNumber, modelName]);
-    }
-    if (!existingStylesDE.has(modelNumber)) {
-      newEntriesDE.push([modelNumber, modelName]);
-    }
+      if (!existingStylesEN.has(modelNumber)) {
+          newEntriesEN.push([modelNumber, modelName]);
+      }
+      if (!existingStylesFR.has(modelNumber)) {
+          newEntriesFR.push([modelNumber, modelName]);
+      }
+      if (!existingStylesDE.has(modelNumber)) {
+          newEntriesDE.push([modelNumber, modelName]);
+      }
   }
 
   // Function to append new rows
   function appendNewRows(sheet: ExcelScript.Worksheet, newEntries: (string | number | boolean)[][]) {
-    if (newEntries.length > 0) {
-      let range = sheet.getUsedRange();
-      let startRow = range ? range.getRowCount() : 1;
-      let targetRange = sheet.getRangeByIndexes(startRow, styleColEN, newEntries.length, 2);
-      targetRange.setValues(newEntries);
-      console.log(`${newEntries.length} new entries added to ${sheet.getName()}.`);
-    }
+      if (newEntries.length > 0) {
+          let range = sheet.getUsedRange();
+          let startRow = range ? range.getRowCount() : 1;
+          let targetRange = sheet.getRangeByIndexes(startRow, styleColEN, newEntries.length, 2);
+          targetRange.setValues(newEntries);
+          console.log(`${newEntries.length} new entries added to ${sheet.getName()}.`);
+      }
   }
 
   // Append new rows to all sheets

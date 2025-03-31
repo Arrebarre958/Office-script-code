@@ -1,0 +1,50 @@
+// Office Script to sync 'Proofread german' to 'DE - Master of files' where 'Proofread?' is 'Yes'
+function main(workbook: ExcelScript.Workbook) {
+  const masterSheet = workbook.getWorksheet('DE - Master of files');
+  const proofSheet = workbook.getWorksheet('Proofread german');
+
+  const masterData = masterSheet.getUsedRange().getValues();
+  const proofData = proofSheet.getUsedRange().getValues();
+
+  const masterHeader = masterData[0];
+  const proofHeader = proofData[0];
+
+  const styleColIdx = masterHeader.indexOf("Style number");
+  const modelColIdx = proofHeader.indexOf("Model #/Status");
+  const proofreadColIdx = proofHeader.indexOf("Proofread?");
+
+  if (styleColIdx === -1 || modelColIdx === -1 || proofreadColIdx === -1) return;
+
+  for (let i = 1; i < proofData.length; i++) {
+    const proofRow = proofData[i];
+    const isProofread = proofRow[proofreadColIdx];
+    if (isProofread !== "Yes") continue;
+
+    const modelRaw = proofRow[modelColIdx];
+    const model = typeof modelRaw === 'string' ? modelRaw.split("/")[0].trim() : String(modelRaw).split("/")[0].trim();
+
+    const masterRowIdx = masterData.findIndex((row, idx) => {
+      if (idx === 0) return false;
+      const styleRaw = row[styleColIdx];
+      const style = typeof styleRaw === 'string' ? styleRaw.trim() : String(styleRaw).trim();
+      return style === model;
+    });
+
+    if (masterRowIdx === -1) continue;
+
+    const masterRow = masterData[masterRowIdx];
+    for (let j = 0; j < proofHeader.length; j++) {
+      if (j === proofreadColIdx) continue;
+      const header = proofHeader[j];
+      const masterIdx = masterHeader.indexOf(header);
+      if (masterIdx !== -1) {
+        masterRow[masterIdx] = proofRow[j];
+      }
+    }
+  }
+
+  // Write updated master data back to the sheet
+  const rowCount = masterData.length;
+  const colCount = masterData[0].length;
+  masterSheet.getRangeByIndexes(0, 0, rowCount, colCount).setValues(masterData);
+}

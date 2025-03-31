@@ -1,0 +1,20 @@
+function main(workbook: ExcelScript.Workbook) {
+	const sheet = workbook.getWorksheet("Proofread english");
+	const usedRange = sheet.getUsedRange();
+	const values = usedRange.getValues();
+
+	// Get the index of the "Proofread?" column
+	const headerRow = values[0];
+	const proofreadColIndex = headerRow.indexOf("Proofread?");
+	if (proofreadColIndex === -1) {
+		throw new Error('"Proofread?" column not found in "Proofread english" sheet.');
+	}
+
+	// Loop through each row starting from row 1 (skip header)
+	for (let i = 1; i < values.length; i++) {
+		values[i][proofreadColIndex] = "Yes";
+	}
+
+	// Write updated values back to the sheet
+	usedRange.setValues(values);
+}

@@ -1,0 +1,35 @@
+function main(workbook: ExcelScript.Workbook) {
+    // Get the worksheet named "MasterFileEnglish"
+    let sheet = workbook.getWorksheet("MasterFileEnglish");
+    if (!sheet) {
+        console.log("Sheet 'MasterFileEnglish' not found.");
+        return;
+    }
+
+    // Get the range of used cells
+    let usedRange = sheet.getUsedRange();
+    if (!usedRange) {
+        console.log("No data found in the sheet.");
+        return;
+    }
+
+    let values = usedRange.getValues();
+    let headerRow = values[0];
+
+    // Find the column index for "Model #/Status"
+    let columnIndex = headerRow.indexOf("Model #/Status");
+    if (columnIndex === -1) {
+        console.log("Column 'Model #/Status' not found.");
+        return;
+    }
+
+    // Loop through rows (excluding header) and replace "/Project Manager"
+    for (let i = 1; i < values.length; i++) {
+        if (typeof values[i][columnIndex] === "string") {
+            values[i][columnIndex] = values[i][columnIndex].replace(/\/Project Manager/g, "");
+        }
+    }
+
+    // Write updated values back to the sheet
+    usedRange.setValues(values);
+}

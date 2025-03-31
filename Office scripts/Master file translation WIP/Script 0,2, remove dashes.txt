@@ -1,0 +1,24 @@
+function main(workbook: ExcelScript.Workbook) {
+    // Get the worksheet named "MasterFileEnglish"
+    const sheet = workbook.getWorksheet("MasterFileEnglish");
+
+    // Get the used range of the worksheet
+    const range = sheet.getUsedRange();
+    if (!range) return;
+
+    // Get all values in the range
+    const values = range.getValues();
+
+    // Loop through all cells and remove leading dash from strings
+    for (let i = 0; i < values.length; i++) {
+        for (let j = 0; j < values[i].length; j++) {
+            const cellValue = values[i][j];
+            if (typeof cellValue === "string" && cellValue.startsWith("-")) {
+                values[i][j] = cellValue.slice(1); // Remove the first character (the dash)
+            }
+        }
+    }
+
+    // Write updated values back to the sheet
+    range.setValues(values);
+}

@@ -1,0 +1,31 @@
+function main(workbook: ExcelScript.Workbook) {
+    const sheet = workbook.getWorksheet("Proofread german");
+    const usedRange = sheet.getUsedRange();
+    const values = usedRange.getValues();
+
+    // Get the index of the relevant columns
+    const headerRow = values[0];
+    const proofreadColIndex = headerRow.indexOf("Proofread?");
+    const modelStatusColIndex = headerRow.indexOf("Model #/Status");
+
+    if (proofreadColIndex === -1) {
+        throw new Error('"Proofread?" column not found in "Proofread german" sheet.');
+    }
+    if (modelStatusColIndex === -1) {
+        throw new Error('"Model #/Status" column not found in "Proofread german" sheet.');
+    }
+
+    // Loop through each row starting from row 1 (skip header)
+    for (let i = 1; i < values.length; i++) {
+        const proofreadCell = values[i][proofreadColIndex];
+        const modelStatusCell = values[i][modelStatusColIndex];
+
+        // Only update if "Proofread?" is empty and "Model #/Status" is not empty
+        if ((proofreadCell === "" || proofreadCell === null) && (modelStatusCell !== "" && modelStatusCell !== null)) {
+            values[i][proofreadColIndex] = "No";
+        }
+    }
+
+    // Write updated values back to the sheet
+    usedRange.setValues(values);
+}

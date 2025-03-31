@@ -1,0 +1,21 @@
+function main(workbook: ExcelScript.Workbook): boolean {
+    const sheet = workbook.getWorksheet("Proofread german");
+    const usedRange = sheet.getUsedRange();
+    const values = usedRange.getValues();
+
+    // Find the index of the "Proofread?" column
+    const headerRow = values[0];
+    const proofreadColIndex = headerRow.indexOf("Proofread?");
+    if (proofreadColIndex === -1) {
+        throw new Error('"Proofread?" column not found.');
+    }
+
+    // Loop through rows (skip header)
+    for (let i = 1; i < values.length; i++) {
+        if (values[i][proofreadColIndex]?.toString().trim().toLowerCase() === "no") {
+            return true; // Found at least one "No"
+        }
+    }
+
+    return false; // No "No" found
+}
