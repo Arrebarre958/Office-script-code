@@ -1,0 +1,23 @@
+mutation UpdateGermanDescriptions {
+  setTranslations(
+    input: {
+      objectType: Display
+      objectId: 15
+      language: { id: 3 }
+      translations: [
+        {
+          field: "shortDescription"
+          value: "Neuer kurzer Beschreibungstext"
+        },
+        {
+          field: "description"
+          value: "Dies ist die aktualisierte Produktbeschreibung auf Deutsch."
+        }
+      ]
+    }
+  ) {
+    userErrors {
+      message
+    }
+  }
+}

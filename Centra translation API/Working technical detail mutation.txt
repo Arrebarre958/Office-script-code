@@ -1,0 +1,18 @@
+mutation {
+  setTranslations(
+    input: {
+      objectType: Product
+      objectId: 7
+      language: { id: 3 }  # For example, 3 = "de" (German), if that's the right one
+      translations: [
+        { field: "attributes.product_benefits.list", value: "Aktualisierter Vorteil123" },
+        { field: "attributes.technical_details.detail1", value: "Neue technische Information" }
+      ]
+    }
+  ) {
+    userErrors {
+      message
+      path
+    }
+  }
+}

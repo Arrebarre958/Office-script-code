@@ -1,0 +1,15 @@
+query GetGermanDescriptions {
+  product(id: 7) {
+    id
+    productNumber
+    displays {
+      id
+      translations {
+        fields {
+          field
+          value
+        }
+      }
+    }
+  }
+}
