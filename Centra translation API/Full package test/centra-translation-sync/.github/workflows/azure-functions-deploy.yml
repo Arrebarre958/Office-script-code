@@ -41,5 +41,5 @@ jobs:
       - name: Deploy to Azure Function App
         uses: Azure/functions-action@v1
         with:
-          app-name: <YOUR_FUNCTION_APP_NAME>
+          app-name: <centra-translation-sync>
           package: '.'
