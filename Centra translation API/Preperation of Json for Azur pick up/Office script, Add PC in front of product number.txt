@@ -1,0 +1,35 @@
+function main(workbook: ExcelScript.Workbook) {
+  const sheet = workbook.getActiveWorksheet();
+  const usedRange = sheet.getUsedRange();
+
+  if (!usedRange) {
+    throw new Error("No data found in the sheet.");
+  }
+
+  const allValues = usedRange.getValues();
+  const headerRow = allValues[0];
+
+  const styleNumberColIndex = headerRow.indexOf("Style Number");
+  const productNumberColIndex = headerRow.indexOf("ProductNumber");
+
+  if (styleNumberColIndex === -1 || productNumberColIndex === -1) {
+    throw new Error("Either 'Style number' or 'ProductNumber' column was not found.");
+  }
+
+  let updatedValues: string[][] = [];
+
+  for (let i = 1; i < allValues.length; i++) {
+    const originalValue = allValues[i][styleNumberColIndex]?.toString().trim() || "";
+
+    if (originalValue.length === 0) {
+      updatedValues.push([""]);
+    } else if (/^\d/.test(originalValue)) {
+      updatedValues.push([`PC${originalValue}`]);
+    } else {
+      updatedValues.push([originalValue]);
+    }
+  }
+
+  // Apply updated values to the ProductNumber column (excluding header row)
+  sheet.getRangeByIndexes(1, productNumberColIndex, updatedValues.length, 1).setValues(updatedValues);
+}

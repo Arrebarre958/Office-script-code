@@ -1,0 +1,102 @@
+import logging
+import os
+import requests
+import azure.functions as func
+
+# Environment variables you should set in Azure
+CENTRA_API_URL = os.getenv("https://poc.centraqa.com/graphql")
+CENTRA_API_TOKEN = os.getenv("d9015048056f351e5416da4280668f7d")
+
+HEADERS = {
+    "Authorization": f"Bearer {CENTRA_API_TOKEN}",
+    "Content-Type": "application/json"
+}
+
+def query_product_and_display_ids(product_number):
+    query = {
+        "query": """
+        query ($number: String!) {
+          products(filter: { productNumber: { eq: $number } }) {
+            edges {
+              node {
+                id
+                productNumber
+                displays {
+                  id
+                }
+              }
+            }
+          }
+        }
+        """,
+        "variables": {"number": product_number}
+    }
+    response = requests.post(CENTRA_API_URL, headers=HEADERS, json=query)
+    data = response.json()
+    try:
+        node = data['data']['products']['edges'][0]['node']
+        product_id = node['id']
+        display_id = node['displays'][0]['id']  # Assuming first display is correct
+        return product_id, display_id
+    except Exception as e:
+        logging.error(f"Failed to get IDs for product {product_number}: {e}")
+        return None, None
+
+def push_translation(input_block):
+    payload = {
+        "query": """
+        mutation SetTranslations($input: TranslationsSetInput!) {
+          setTranslations(input: $input) {
+            userErrors {
+              message
+            }
+          }
+        }
+        """,
+        "variables": {
+            "input": input_block
+        }
+    }
+    response = requests.post(CENTRA_API_URL, headers=HEADERS, json=payload)
+    return response.json()
+
+def main(req: func.HttpRequest) -> func.HttpResponse:
+    logging.info("Processing translation sync request.")
+    try:
+        body = req.get_json()
+        results = []
+
+        for entry in body:
+            product_number = entry.get("productNumber")
+            product_id, display_id = query_product_and_display_ids(product_number)
+            if not product_id or not display_id:
+                results.append({"productNumber": product_number, "status": "error", "message": "ID lookup failed"})
+                continue
+
+            # Push product-level translation
+            product_input = entry["productTranslationInput"]
+            product_input["objectId"] = int(product_id)
+            product_result = push_translation(product_input)
+
+            # Push display-level translation
+            display_input = entry["displayTranslationInput"]
+            display_input["objectId"] = int(display_id)
+            display_result = push_translation(display_input)
+
+            results.append({
+                "productNumber": product_number,
+                "productId": product_id,
+                "displayId": display_id,
+                "productResult": product_result,
+                "displayResult": display_result
+            })
+
+        return func.HttpResponse(
+            body=str(results),
+            status_code=200,
+            mimetype="application/json"
+        )
+
+    except Exception as e:
+        logging.error(f"Function error: {e}")
+        return func.HttpResponse(f"Error: {str(e)}", status_code=500)

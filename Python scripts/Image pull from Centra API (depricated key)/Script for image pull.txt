@@ -1,0 +1,124 @@
+import requests
+import csv
+import time
+
+# --- CONFIG ---
+API_URL = "https://poc.centra.com/graphql"
+API_TOKEN = "c0bf333d0b5c047a8ea48b20c4054a4f"
+OUTPUT_CSV = "centra_production_full_media_export.csv"
+PAGE_SIZE = 50
+
+HEADERS = {
+    "Authorization": f"Bearer {API_TOKEN}",
+    "Content-Type": "application/json"
+}
+
+def build_paginated_query(after_cursor=None):
+    after_clause = f', after: "{after_cursor}"' if after_cursor else ''
+    return {
+        "query": f"""
+        query {{
+            productConnection(first: {PAGE_SIZE}{after_clause}) {{
+                pageInfo {{
+                    hasNextPage
+                    endCursor
+                }}
+                edges {{
+                    node {{
+                        id
+                        name
+                        productNumber
+                        variants {{
+                            id
+                            name
+                            variantNumber
+                            media {{
+                                id
+                                source {{
+                                    url
+                                    mimeType
+                                    type
+                                }}
+                            }}
+                        }}
+                    }}
+                }}
+            }}
+        }}
+        """
+    }
+
+def fetch_all_products():
+    all_rows = []
+    seen_ids = set()
+    after_cursor = None
+    page = 1
+
+    while True:
+        print(f"📦 Fetching page {page}...")
+        query = build_paginated_query(after_cursor)
+        response = requests.post(API_URL, headers=HEADERS, json=query)
+
+        if response.status_code != 200:
+            print("❌ Error:", response.text)
+            break
+
+        data = response.json()
+        connection = data.get("data", {}).get("productConnection", {})
+        edges = connection.get("edges", [])
+
+        if not edges:
+            print("✅ No more products found. Done!")
+            break
+
+        for edge in edges:
+            product = edge["node"]
+            if product["id"] in seen_ids:
+                continue
+            seen_ids.add(product["id"])
+
+            for variant in product.get("variants", []):
+                for media in variant.get("media", []):
+                    source = media.get("source", {})
+                    all_rows.append({
+                        "product_id": product["id"],
+                        "product_name": product["name"],
+                        "product_number": product["productNumber"],
+                        "variant_id": variant["id"],
+                        "variant_name": variant["name"],
+                        "variant_number": variant["variantNumber"],
+                        "media_id": media["id"],
+                        "media_url": source.get("url"),
+                        "media_type": source.get("type"),
+                        "media_mime": source.get("mimeType")
+                    })
+
+        page += 1
+        after_cursor = connection.get("pageInfo", {}).get("endCursor")
+        has_next = connection.get("pageInfo", {}).get("hasNextPage", False)
+
+        if not has_next:
+            print("✅ Reached end of pagination.")
+            break
+
+        time.sleep(0.5)
+
+    print(f"✅ Total media rows collected: {len(all_rows)}")
+    return all_rows
+
+def save_to_csv(rows, filename):
+    if not rows:
+        print("⚠️ No data to save.")
+        return
+
+    with open(filename, mode="w", newline="", encoding="utf-8") as file:
+        writer = csv.DictWriter(file, fieldnames=rows[0].keys())
+        writer.writeheader()
+        writer.writerows(rows)
+
+    print(f"💾 Saved {len(rows)} rows to {filename}")
+
+# --- MAIN ---
+if __name__ == "__main__":
+    rows = fetch_all_products()
+    save_to_csv(rows, OUTPUT_CSV)

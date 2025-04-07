@@ -23,10 +23,18 @@ function main(workbook: ExcelScript.Workbook) {
         return;
     }
 
-    // Loop through rows (excluding header) and replace "/Project Manager"
+    // Loop through rows (excluding header) and clean up strings
     for (let i = 1; i < values.length; i++) {
         if (typeof values[i][columnIndex] === "string") {
-            values[i][columnIndex] = values[i][columnIndex].replace(/\/Project Manager/g, "");
+            let cellValue = values[i][columnIndex];
+
+            // Remove "/Project Manager" anywhere in the string
+            cellValue = cellValue.replace(/\/Project Manager/g, "");
+
+            // Remove "/Product Fact Check" only if it appears at the end
+            cellValue = cellValue.replace(/\/Product Fact Check/g, "");
+
+            values[i][columnIndex] = cellValue;
         }
     }
 
