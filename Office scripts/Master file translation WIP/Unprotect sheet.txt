@@ -1,0 +1,33 @@
+function main(workbook: ExcelScript.Workbook) {
+  // Full-sheet names to unprotect
+  const fullSheetNames = [
+    'DE - Master of files',
+    'EN - Master of files',
+    'FR - Master of files'
+  ];
+
+  for (const name of fullSheetNames) {
+    const sheet = workbook.getWorksheet(name);
+    if (sheet) {
+      sheet.getProtection().unprotect();
+    }
+  }
+
+  // Partial sheets: first unprotect whole sheet, then unlock range A1:B3000
+  const partialProtectionSheets = [
+    'Proofread english',
+    'Proofread french',
+    'Proofread german'
+  ];
+
+  for (const name of partialProtectionSheets) {
+    const sheet = workbook.getWorksheet(name);
+    if (sheet) {
+      const protection = sheet.getProtection();
+      protection.unprotect(); // Make sure sheet is fully unprotected first
+
+      const range = sheet.getRange('A1:B3000');
+      range.getFormat().getProtection().setLocked(false); // Unlock the range
+    }
+  }
+}

@@ -1,0 +1,46 @@
+function main(workbook: ExcelScript.Workbook) {
+    // List of full-sheet names to protect
+    const fullSheetNames = [
+        'DE - Master of files',
+        'EN - Master of files',
+        'FR - Master of files'
+    ];
+
+    // First protect entire sheets
+    for (const name of fullSheetNames) {
+        const sheet = workbook.getWorksheet(name);
+        if (sheet) {
+            const protection = sheet.getProtection();
+            if (protection.getProtected()) {
+                protection.unprotect();
+            }
+            protection.protect();
+        }
+    }
+
+    // Now handle the A1:B3000 range locking logic
+    const partialProtectionSheets = [
+        'Proofread english',
+        'Proofread french',
+        'Proofread german'
+    ];
+
+    for (const name of partialProtectionSheets) {
+        const sheet = workbook.getWorksheet(name);
+        if (sheet) {
+            const protection = sheet.getProtection();
+            if (protection.getProtected()) {
+                protection.unprotect(); // Unprotect before applying locking
+            }
+
+            // Lock entire used range
+            const fullRange = sheet.getUsedRange();
+            if (fullRange) {
+                fullRange.getFormat().getProtection().setLocked(true);
+            }
+
+            // Now re-protect the sheet
+            protection.protect();
+        }
+    }
+}

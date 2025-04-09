@@ -1,0 +1,65 @@
+import requests
+import time
+import pandas as pd
+
+CENTRA_API_URL = "https://poc.centraqa.com/graphql"
+HEADERS = {
+    "Authorization": "Bearer d9015048056f351e5416da4280668f7d",
+    "Content-Type": "application/json"
+}
+
+def fetch_all_variants(batch_size=50, throttle=0.3):
+    page = 1
+    all_variants = []
+
+    while True:
+        print(f"Fetching page {page}...")
+
+        query = f"""
+        {{
+          products(limit: {batch_size}, page: {page}) {{
+            id
+            variants {{
+              id
+              status
+            }}
+          }}
+        }}
+        """
+
+        response = requests.post(CENTRA_API_URL, headers=HEADERS, json={"query": query})
+        if response.status_code != 200:
+            print(f"[HTTP ERROR] {response.status_code}: {response.text}")
+            break
+
+        data = response.json()
+        if "errors" in data:
+            print(f"[GRAPHQL ERROR] {data['errors']}")
+            break
+
+        products = data.get("data", {}).get("products", [])
+        if not products:
+            print("No more products found.")
+            break
+
+        for product in products:
+            for variant in product["variants"]:
+                all_variants.append({
+                    "product_id": product["id"],
+                    "variant_id": variant["id"],
+                    "status": variant["status"]
+                })
+
+        page += 1
+        time.sleep(throttle)
+
+    return all_variants
+
+# Run and save
+variants = fetch_all_variants()
+if variants:
+    df = pd.DataFrame(variants)
+    df.to_excel("variant_statuses.xlsx", index=False)
+    print(f"✅ Saved {len(df)} variant statuses to variant_statuses.xlsx")
+else:
+    print("❌ No data to export.")

@@ -1,0 +1,63 @@
+import requests
+import pandas as pd
+import time
+
+# === CONFIG ===
+CENTRA_API_URL = "https://poc.centraqa.com/graphql"
+CENTRA_TOKEN = "d9015048056f351e5416da4280668f7d"
+
+HEADERS = {
+    "Authorization": f"Bearer {CENTRA_TOKEN}",
+    "Content-Type": "application/json"
+}
+
+FILEPATH = "variant_statuses.xlsx"
+THROTTLE_SECONDS = 0.3  # Wait time between requests
+DRY_RUN = False
+
+# === MAIN FUNCTION ===
+def update_variant_statuses(filepath=FILEPATH, throttle=THROTTLE_SECONDS, dry_run=DRY_RUN):
+    df = pd.read_excel(filepath)
+    print(f"✅ Loaded {len(df)} rows from {filepath}")
+
+    for _, row in df.iterrows():
+        variant_id = int(row["variant_id"])
+        status = row["status"].strip()  # Ensure it's clean
+
+        # Ensure enum is unquoted
+        mutation = f"""
+        mutation {{
+          updateProductVariant(id: {variant_id}, input: {{
+            status: {status}
+          }}) {{
+            userErrors {{
+              message
+            }}
+          }}
+        }}
+        """
+
+        if dry_run:
+            print(f"[DRY RUN] Would update variant {variant_id} → {status}")
+            continue
+
+        response = requests.post(CENTRA_API_URL, headers=HEADERS, json={"query": mutation})
+
+        try:
+            data = response.json()
+            errors = data.get("data", {}).get("updateProductVariant", {}).get("userErrors", [])
+
+            if errors:
+                print(f"[GRAPHQL ERROR] {variant_id}: {[e['message'] for e in errors]}")
+                continue
+
+            print(f"✅ Updated variant {variant_id} → {status}")
+
+        except Exception as e:
+            print(f"[EXCEPTION] {variant_id}: {e}")
+
+        time.sleep(throttle)
+
+# === RUN SCRIPT ===
+if __name__ == "__main__":
+    update_variant_statuses()

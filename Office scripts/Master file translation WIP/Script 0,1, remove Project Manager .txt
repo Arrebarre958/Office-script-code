@@ -34,6 +34,9 @@ function main(workbook: ExcelScript.Workbook) {
             // Remove "/Product Fact Check" only if it appears at the end
             cellValue = cellValue.replace(/\/Product Fact Check/g, "");
 
+            // Remove "/Product Fact Check" only if it appears at the end
+            cellValue = cellValue.replace(/\/Proofing/g, "");
+
             values[i][columnIndex] = cellValue;
         }
     }
