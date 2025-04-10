@@ -4,7 +4,7 @@ import time
 
 # --- CONFIG ---
 API_URL = "https://poc.centra.com/graphql"
-API_TOKEN = "c0bf333d0b5c047a8ea48b20c4054a4f"
+API_TOKEN = ""
 OUTPUT_CSV = "centra_production_full_media_export.csv"
 PAGE_SIZE = 50
 
