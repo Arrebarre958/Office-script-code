@@ -1,0 +1,209 @@
+import requests
+import pandas as pd
+import time
+
+# === CONFIG ===
+CENTRA_API_URL = "https://poc.centraqa.com/graphql"  # Replace with actual endpoint
+HEADERS = {
+    "Authorization": "Bearer d9015048056f351e5416da4280668f7d",  # Replace with actual token
+    "Content-Type": "application/json"
+}
+PAGE_LIMIT = 5
+THROTTLE = 1
+
+badge_ids = {}  # Global dictionary to collect badge name → ID
+
+# === GRAPHQL QUERY ===
+PRODUCTS_QUERY = """
+query ($page: Int, $limit: Int) {
+  products(page: $page, limit: $limit) {
+    id
+    name
+    status
+    variants {
+      id
+      name
+      status
+      attributes {
+        ... on MappedAttribute {
+          name
+          id
+          elements {
+            description
+          }
+        }
+      }
+      displays {
+        id
+        name
+        status
+        categories {
+          id
+          name
+          parentCategory {
+            id
+            name
+            parentCategory {
+              id
+              name
+              parentCategory {
+                id
+                name
+                parentCategory {
+                  id
+                  name
+                }
+              }
+            }
+          }
+        }
+        markets {
+          id
+          name
+        }
+      }
+    }
+  }
+}
+"""
+
+MARKETS_QUERY = """
+query {
+  markets {
+    id
+    name
+  }
+}
+"""
+
+def graphql_query(query, variables=None):
+    response = requests.post(CENTRA_API_URL, headers=HEADERS, json={"query": query, "variables": variables})
+    if response.status_code != 200:
+        raise Exception(f"GraphQL query failed with status {response.status_code}: {response.text}")
+    data = response.json()
+    if "errors" in data:
+        raise Exception(f"GraphQL error: {data['errors']}")
+    return data["data"]
+
+def get_full_category_path(cat):
+    names = []
+    current = cat
+    level = 0
+    while current and level < 5:
+        if "name" in current:
+            names.insert(0, current["name"])
+        current = current.get("parentCategory")
+        level += 1
+    return " / ".join(names)
+
+MAX_PAGES = 5
+
+def fetch_all_products():
+    all_rows = []
+    unique_categories = {}
+    page = 1
+
+    while page <= MAX_PAGES:
+        print(f"Fetching page {page}...")
+        data = graphql_query(PRODUCTS_QUERY, {"page": page, "limit": PAGE_LIMIT})
+        products = data.get("products", [])
+        if not products:
+            break
+
+        for product in products:
+            product_id = product["id"]
+            product_name = product["name"]
+            product_status = product["status"]
+
+            for variant in product.get("variants", []):
+                variant_id = variant["id"]
+                variant_name = variant["name"]
+                variant_status = variant["status"]
+
+                badges = []
+                global badge_ids
+                for attr in variant.get("attributes", []):
+                    if attr.get("elements"):
+                        for el in attr["elements"]:
+                            if el.get("description") == "Badge title":
+                                name = attr.get("name", "").strip()
+                                attr_id = attr.get("id")
+                                if name:
+                                    badges.append(name)
+                                    if attr_id:
+                                        badge_ids[name] = attr_id
+                badge_str = ", ".join(badges)
+
+                for display in variant.get("displays", []):
+                    display_id = display["id"]
+                    display_name = display["name"]
+                    display_status = display["status"]
+
+                    categories = display.get("categories", [])
+                    category_paths = [get_full_category_path(c) for c in categories]
+                    category_ids = [str(c["id"]) for c in categories]
+
+                    for c in categories:
+                        full_path = get_full_category_path(c)
+                        unique_categories[full_path] = c["id"]
+
+                    markets = display.get("markets", [])
+                    market_names = [m["name"] for m in markets]
+
+                    all_rows.append({
+                        "Product ID": product_id,
+                        "Product Name": product_name,
+                        "Product Status": product_status,
+                        "Variant ID": variant_id,
+                        "Variant Name": variant_name,
+                        "Variant Status": variant_status,
+                        "Badges": badge_str,
+                        "Add Badge": "",
+                        "Remove Badge": "",
+                        "Display ID": display_id,
+                        "Display Name": display_name,
+                        "Display Status": display_status,
+                        "Display Categories": "\n".join(category_paths),
+                        "Display Category IDs": "\n".join(category_ids),
+                        "Add to Categories": "",
+                        "Remove from Categories": "",
+                        "Display Markets": ", ".join(market_names),
+                        "Add to Markets": "",
+                        "Remove from Markets": "",
+                    })
+
+        page += 1
+        time.sleep(THROTTLE)
+
+    return all_rows, unique_categories
+
+def fetch_markets():
+    data = graphql_query(MARKETS_QUERY)
+    return data.get("markets", [])
+
+def fetch_mapped_attributes_from_variants():
+    return [
+        {"Attribute Name": name, "Attribute ID": attr_id}
+        for name, attr_id in badge_ids.items()
+    ]
+
+if __name__ == "__main__":
+    main_rows, categories = fetch_all_products()
+    markets = fetch_markets()
+    mapped_attrs = fetch_mapped_attributes_from_variants()
+
+    df_main = pd.DataFrame(main_rows)
+    df_categories = pd.DataFrame([
+        {"Category Path": k, "Category ID": v} for k, v in categories.items()
+    ])
+    df_markets = pd.DataFrame(markets)
+    df_markets.rename(columns={"id": "Market ID", "name": "Market Name"}, inplace=True)
+    df_attributes = pd.DataFrame(mapped_attrs)
+
+    with pd.ExcelWriter("centra_product_export.xlsx", engine="openpyxl") as writer:
+        df_main.to_excel(writer, sheet_name="Product Data", index=False)
+        df_categories.to_excel(writer, sheet_name="Categories", index=False)
+        df_markets.to_excel(writer, sheet_name="Markets", index=False)
+        df_attributes.to_excel(writer, sheet_name="Mapped Attributes", index=False)
+
+    print("✅ Export complete: centra_product_export.xlsx")

@@ -12,13 +12,13 @@ HEADERS = {
 }
 
 FILEPATH = "variant_statuses.xlsx"
-THROTTLE_SECONDS = 0.3  # Wait time between requests
+THROTTLE_SECONDS = 1  # Wait time between requests
 DRY_RUN = False
 
 # === MAIN FUNCTION ===
 def update_variant_statuses(filepath=FILEPATH, throttle=THROTTLE_SECONDS, dry_run=DRY_RUN):
     df = pd.read_excel(filepath)
-    print(f"✅ Loaded {len(df)} rows from {filepath}")
+    print(f" Loaded {len(df)} rows from {filepath}")
 
     for _, row in df.iterrows():
         variant_id = int(row["variant_id"])

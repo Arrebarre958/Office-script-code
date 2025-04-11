@@ -8,10 +8,12 @@ API_TOKEN = ""
 OUTPUT_CSV = "centra_production_full_media_export.csv"
 PAGE_SIZE = 50
 
+
 HEADERS = {
     "Authorization": f"Bearer {API_TOKEN}",
     "Content-Type": "application/json"
 }
+THROTTLE = 1
 
 def build_paginated_query(after_cursor=None):
     after_clause = f', after: "{after_cursor}"' if after_cursor else ''
@@ -55,12 +57,12 @@ def fetch_all_products():
     page = 1
 
     while True:
-        print(f"📦 Fetching page {page}...")
+        print(f"Fetching page {page}...")
         query = build_paginated_query(after_cursor)
         response = requests.post(API_URL, headers=HEADERS, json=query)
 
         if response.status_code != 200:
-            print("❌ Error:", response.text)
+            print("Error:", response.text)
             break
 
         data = response.json()
@@ -68,7 +70,7 @@ def fetch_all_products():
         edges = connection.get("edges", [])
 
         if not edges:
-            print("✅ No more products found. Done!")
+            print("No more products found. Done!")
             break
 
         for edge in edges:
@@ -98,17 +100,17 @@ def fetch_all_products():
         has_next = connection.get("pageInfo", {}).get("hasNextPage", False)
 
         if not has_next:
-            print("✅ Reached end of pagination.")
+            print("Reached end of pagination.")
             break
 
         time.sleep(0.5)
 
-    print(f"✅ Total media rows collected: {len(all_rows)}")
+    print(f"Total media rows collected: {len(all_rows)}")
     return all_rows
 
 def save_to_csv(rows, filename):
     if not rows:
-        print("⚠️ No data to save.")
+        print("No data to save.")
         return
 
     with open(filename, mode="w", newline="", encoding="utf-8") as file:
@@ -116,7 +118,7 @@ def save_to_csv(rows, filename):
         writer.writeheader()
         writer.writerows(rows)
 
-    print(f"💾 Saved {len(rows)} rows to {filename}")
+    print(f"Saved {len(rows)} rows to {filename}")
 
 # --- MAIN ---
 if __name__ == "__main__":

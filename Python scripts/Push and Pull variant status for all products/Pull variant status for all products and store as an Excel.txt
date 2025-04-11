@@ -8,7 +8,7 @@ HEADERS = {
     "Content-Type": "application/json"
 }
 
-def fetch_all_variants(batch_size=50, throttle=0.3):
+def fetch_all_variants(batch_size=25, throttle=1):
     page = 1
     all_variants = []
 
