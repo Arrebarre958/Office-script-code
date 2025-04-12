@@ -1,63 +1,273 @@
 import requests
 import pandas as pd
+import logging
 import time
 
-# === CONFIG ===
-CENTRA_API_URL = "https://poc.centraqa.com/graphql"
-CENTRA_TOKEN = "d9015048056f351e5416da4280668f7d"
+# Configuration: API endpoint and token (same as in download script)
+API_URL = "https://poc.centraqa.com/graphql"
+API_TOKEN = "d9015048056f351e5416da4280668f7d"
+headers = {"Authorization": f"Bearer {API_TOKEN}"}
 
-HEADERS = {
-    "Authorization": f"Bearer {CENTRA_TOKEN}",
-    "Content-Type": "application/json"
-}
-
-FILEPATH = "variant_statuses.xlsx"
-THROTTLE_SECONDS = 1  # Wait time between requests
+# Behavior settings
 DRY_RUN = False
+THROTTLE_DELAY = 1
 
-# === MAIN FUNCTION ===
-def update_variant_statuses(filepath=FILEPATH, throttle=THROTTLE_SECONDS, dry_run=DRY_RUN):
-    df = pd.read_excel(filepath)
-    print(f" Loaded {len(df)} rows from {filepath}")
+# Logging configuration
+logging.basicConfig(filename="centra_upload_errors.log", filemode="w", level=logging.ERROR)
+logging.getLogger().addHandler(logging.StreamHandler())
 
-    for _, row in df.iterrows():
-        variant_id = int(row["variant_id"])
-        status = row["status"].strip()  # Ensure it's clean
+input_file = "centra_product_export.xlsx"
+try:
+    xls = pd.ExcelFile(input_file)
+except FileNotFoundError:
+    raise SystemExit(f"Input file '{input_file}' not found.")
 
-        # Ensure enum is unquoted
-        mutation = f"""
-        mutation {{
-          updateProductVariant(id: {variant_id}, input: {{
-            status: {status}
-          }}) {{
-            userErrors {{
-              message
-            }}
-          }}
-        }}
-        """
+df_main = pd.read_excel(xls, sheet_name="Product Data")
+df_categories = pd.read_excel(xls, sheet_name="Categories")
+df_markets = pd.read_excel(xls, sheet_name="Markets", keep_default_na=False, na_values=[])
+df_attributes = pd.read_excel(xls, sheet_name="Mapped Attributes")
 
-        if dry_run:
-            print(f"[DRY RUN] Would update variant {variant_id} → {status}")
-            continue
+category_id_by_path = {row["Category Path"]: int(row["Category ID"]) for _, row in df_categories.iterrows()}
+market_id_by_name = {str(row["Market Name"]): int(row["Market ID"]) for _, row in df_markets.iterrows()}
+attr_id_by_name = {str(row["Attribute Name"]): int(row["Attribute ID"]) for _, row in df_attributes.iterrows()}
 
-        response = requests.post(CENTRA_API_URL, headers=HEADERS, json={"query": mutation})
+def execute_mutation(mutation_query, context=None):
+    if DRY_RUN:
+        print("[DRY RUN] Skip executing mutation:", mutation_query)
+        return True
 
-        try:
-            data = response.json()
-            errors = data.get("data", {}).get("updateProductVariant", {}).get("userErrors", [])
+    time.sleep(THROTTLE_DELAY)
 
-            if errors:
-                print(f"[GRAPHQL ERROR] {variant_id}: {[e['message'] for e in errors]}")
-                continue
+    try:
+        response = requests.post(API_URL, json={"query": mutation_query}, headers=headers, timeout=30)
+        
+        # NEW DEBUGGING OUTPUT
+        print(f"↪ Response status: {response.status_code}")
+        print(f"↪ Response content (truncated): {response.text[:500]}")
 
-            print(f"✅ Updated variant {variant_id} → {status}")
+    except Exception as e:
+        logging.error(f"Request failed: {e}")
+        return False
 
-        except Exception as e:
-            print(f"[EXCEPTION] {variant_id}: {e}")
+    if response.status_code != 200:
+        logging.error(f"HTTP {response.status_code} error: {response.text}")
+        return False
 
-        time.sleep(throttle)
+    result = response.json()
 
-# === RUN SCRIPT ===
-if __name__ == "__main__":
-    update_variant_statuses()
+    if result.get("errors"):
+        for err in result["errors"]:
+            logging.error(f"GraphQL error: {err.get('message')}")
+        return False
+
+    data = result.get("data", {})
+    for key, value in data.items():
+        errors = value.get("userErrors") if isinstance(value, dict) else None
+        if errors:
+            for err in errors:
+              context_str = f" | Context: {context}" if context else ""
+              logging.error(f"Mutation {key} user error: {err.get('message')}{context_str}")
+
+            return False
+
+    return True
+
+
+def build_update_product_mutation(product_id, new_status=None):
+    inputs = []
+    if new_status:
+        status_value = str(new_status).strip().upper()
+        inputs.append(f"status: {status_value}")
+    input_str = ", ".join(inputs)
+    return f"mutation {{ updateProduct(id: {product_id}, input: {{ {input_str} }}) {{ userErrors {{ message }} }} }}"
+
+def build_update_variant_mutation(variant_id, new_status=None, assign_attrs=None, unassign_attrs=None):
+    inputs = []
+    if new_status:
+        status_value = str(new_status).strip().upper()
+        inputs.append(f"status: {status_value}")
+    if assign_attrs:
+        attr_items = ", ".join(f'{{ attributeId: {aid}, attributeTypeName: "badge" }}' for aid in assign_attrs)
+        inputs.append(f"assignMappedAttributes: [{attr_items}]")
+    if unassign_attrs:
+        attr_items = ", ".join(f'{{ attributeId: {aid}, attributeTypeName: "badge" }}' for aid in unassign_attrs)
+        inputs.append(f"unassignMappedAttributes: [{attr_items}]")
+    input_str = ", ".join(inputs)
+    return f"mutation {{ updateProductVariant(id: {variant_id}, input: {{ {input_str} }}) {{ userErrors {{ message }} }} }}"
+
+def build_update_display_mutation(display_id, new_status=None,
+                                  add_cat_ids=None, remove_cat_ids=None,
+                                  add_market_ids=None, remove_market_ids=None, 
+                                  canonical_category_id=None):
+    inputs = []
+    if new_status:
+        status_value = str(new_status).strip().upper()
+        inputs.append(f"status: {status_value}")
+    if add_cat_ids:
+        cat_items = ", ".join(f"{{ id: {cid} }}" for cid in add_cat_ids)
+        inputs.append(f"addCategories: [{cat_items}]")
+    if remove_cat_ids:
+        cat_items = ", ".join(f"{{ id: {cid} }}" for cid in remove_cat_ids)
+        inputs.append(f"removeCategories: [{cat_items}]")
+    if add_market_ids:
+        market_items = ", ".join(f"{{ id: {mid} }}" for mid in add_market_ids)
+        inputs.append(f"addMarkets: [{market_items}]")
+    if remove_market_ids:
+        market_items = ", ".join(f"{{ id: {mid} }}" for mid in remove_market_ids)
+        inputs.append(f"removeMarkets: [{market_items}]")
+    if canonical_category_id:
+        inputs.append(f"canonicalCategory: {{ id: {canonical_category_id} }}")
+
+    input_str = ", ".join(inputs)
+    return f"mutation {{ updateDisplay(id: {display_id}, input: {{ {input_str} }}) {{ userErrors {{ message }} }} }}"
+
+processed_products = set()
+processed_variants = set()
+
+for index, row in df_main.iterrows():
+    prod_id = int(row["Product ID"])
+    var_id = int(row["Variant ID"])
+    disp_id = int(row["Display ID"])
+    current_prod_status = str(row.get("Product Status", "")).strip()
+    current_var_status = str(row.get("Variant Status", "")).strip()
+    current_disp_status = str(row.get("Display Status", "")).strip()
+
+    new_prod_status = str(row.get("Product Status", "")).strip() or None
+    new_var_status = str(row.get("Variant Status", "")).strip() or None
+    new_disp_status = str(row.get("Display Status", "")).strip() or None
+    if new_prod_status == "": new_prod_status = None
+    if new_var_status == "": new_var_status = None
+    if new_disp_status == "": new_disp_status = None
+
+    add_badges, remove_badges = [], []
+    add_categories, remove_categories = [], []
+    add_markets, remove_markets = [], []
+    print(f" Row {index}: Product/Variant/Display {prod_id}/{var_id}/{disp_id} finished updating")
+
+    # Badge parsing
+    if isinstance(row.get("Add Badge"), str):
+        for name in [x.strip() for x in str(row["Add Badge"]).replace(";", ",").splitlines() for x in x.split(",")]:
+            if name:
+                if name in attr_id_by_name:
+                    add_badges.append(attr_id_by_name[name])
+                else:
+                    logging.error(f"Row {index}: Mapped attribute '{name}' in Add Badge not found in lookup sheet.")
+    if isinstance(row.get("Remove Badge"), str):
+        for name in [x.strip() for x in str(row["Remove Badge"]).replace(";", ",").splitlines() for x in x.split(",")]:
+            if name:
+                if name in attr_id_by_name:
+                    remove_badges.append(attr_id_by_name[name])
+                else:
+                    logging.error(f"Row {index}: Mapped attribute '{name}' in Remove Badge not found in lookup sheet.")
+
+    # Categories
+    if isinstance(row.get("Add to Categories"), str):
+        for path in [x.strip() for x in str(row["Add to Categories"]).replace(";", "\n").splitlines()]:
+            if path:
+                if path in category_id_by_path:
+                    add_categories.append(category_id_by_path[path])
+                else:
+                    logging.error(f"Row {index}: Category '{path}' in Add to Categories not found.")
+    if isinstance(row.get("Remove from Categories"), str):
+        for path in [x.strip() for x in str(row["Remove from Categories"]).replace(";", "\n").splitlines()]:
+            if path:
+                if path in category_id_by_path:
+                    remove_categories.append(category_id_by_path[path])
+                else:
+                    logging.error(f"Row {index}: Category '{path}' in Remove from Categories not found.")
+        
+    canonical_category_id = None
+    if isinstance(row.get("Canonical Category"), str):
+        canonical_path = row["Canonical Category"].strip()
+        if canonical_path:
+            if canonical_path in category_id_by_path:
+                canonical_category_id = category_id_by_path[canonical_path]
+            else:
+                logging.error(f"Row {index}: Canonical category '{canonical_path}' not found in Categories sheet.")
+
+
+    # Markets
+    if isinstance(row.get("Add to Markets"), str):
+        for name in [x.strip() for x in str(row["Add to Markets"]).replace(";", ",").splitlines() for x in x.split(",")]:
+            if name:
+                if name in market_id_by_name:
+                    add_markets.append(market_id_by_name[name])
+                else:
+                    logging.error(f"Row {index}: Market '{name}' in Add to Markets not found.")
+    if isinstance(row.get("Remove from Markets"), str):
+        for name in [x.strip() for x in str(row["Remove from Markets"]).replace(";", ",").splitlines() for x in x.split(",")]:
+            if name:
+                if name in market_id_by_name:
+                    remove_markets.append(market_id_by_name[name])
+                else:
+                    logging.error(f"Row {index}: Market '{name}' in Remove from Markets not found.")
+        # PRODUCT-level mutation
+    if prod_id not in processed_products:
+        processed_products.add(prod_id)
+        if new_prod_status and new_prod_status.upper() != current_prod_status.upper():
+            mutation = build_update_product_mutation(prod_id, new_status=new_prod_status)
+            print(f" Sending mutation for Display {disp_id}...")
+            context = f"Row {index}, Product {prod_id}"
+            execute_mutation(mutation, context=context)
+
+
+    # VARIANT-level mutation (for status or badges)
+    if var_id not in processed_variants:
+        processed_variants.add(var_id)
+        if new_var_status or add_badges or remove_badges:
+            mutation = build_update_variant_mutation(
+                var_id,
+                new_status=new_var_status if new_var_status and new_var_status.upper() != current_var_status.upper() else None,
+                assign_attrs=add_badges if add_badges else None,
+                unassign_attrs=remove_badges if remove_badges else None
+            )
+            print(f" Sending mutation for Display {disp_id}...")
+
+            context = f"Row {index}, Product {prod_id}, Variant {var_id}"
+            execute_mutation(mutation, context=context)
+
+
+    # DISPLAY-level mutation
+    display_status_changed = (new_disp_status and current_disp_status and new_disp_status.upper() != current_disp_status.upper())
+    has_cat_changes = bool(add_categories or remove_categories)
+    has_market_add = bool(add_markets)
+    has_market_remove = bool(remove_markets)
+
+    if not display_status_changed and not has_cat_changes and not has_market_add and not has_market_remove:
+        continue
+
+    if has_market_add and has_market_remove:
+        mutation = build_update_display_mutation(disp_id,
+                                                 new_status=new_disp_status if display_status_changed else None,
+                                                 add_cat_ids=add_categories if add_categories else None,
+                                                 remove_cat_ids=remove_categories if remove_categories else None,
+                                                 add_market_ids=add_markets, canonical_category_id=canonical_category_id)
+        print(f" Sending ADD and REMOVE Categorymutation for Display {disp_id}...")
+        context = f"Row {index}, Product {prod_id}, Variant {var_id}, Display {disp_id}"
+        execute_mutation(mutation, context=context)
+
+        mutation = build_update_display_mutation(disp_id,
+                                                 remove_market_ids=remove_markets, canonical_category_id=canonical_category_id)
+        print(f" Sending REMOVE market mutation for Display {disp_id}...")
+        
+        context = f"Row {index}, Product {prod_id}, Variant {var_id}, Display {disp_id}"
+        execute_mutation(mutation, context=context)
+
+    else:
+        mutation = build_update_display_mutation(disp_id,
+                                                 new_status=new_disp_status if display_status_changed else None,
+                                                 add_cat_ids=add_categories if add_categories else None,
+                                                 remove_cat_ids=remove_categories if remove_categories else None,
+                                                 add_market_ids=add_markets if add_markets else None,
+                                                 remove_market_ids=remove_markets if remove_markets else None, canonical_category_id=canonical_category_id)
+        print(f" Sending ADD market mutation for Display {disp_id}...")
+
+        context = f"Row {index}, Product {prod_id}, Variant {var_id}, Display {disp_id}"
+        execute_mutation(mutation, context=context)
+
+    print(f" Row {index}: Product/Variant/Display {prod_id}/{var_id}/{disp_id} finished updating")
+
+if DRY_RUN:
+    print("DRY RUN complete. No mutations were actually executed.")
+else:
+    print("Upload script complete. Check 'centra_upload_errors.log' for any error details.")

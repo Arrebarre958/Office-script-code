@@ -10,6 +10,7 @@ HEADERS = {
 }
 PAGE_LIMIT = 5
 THROTTLE = 1
+MAX_PAGES = 5
 
 badge_ids = {}  # Global dictionary to collect badge name → ID
 
@@ -38,6 +39,26 @@ query ($page: Int, $limit: Int) {
         name
         status
         categories {
+          id
+          name
+          parentCategory {
+            id
+            name
+            parentCategory {
+              id
+              name
+              parentCategory {
+                id
+                name
+                parentCategory {
+                  id
+                  name
+                }
+              }
+            }
+          }
+        }
+        canonicalCategory {
           id
           name
           parentCategory {
@@ -96,14 +117,13 @@ def get_full_category_path(cat):
         level += 1
     return " / ".join(names)
 
-MAX_PAGES = 5
 
 def fetch_all_products():
     all_rows = []
     unique_categories = {}
     page = 1
 
-    while page <= MAX_PAGES:
+    while True:
         print(f"Fetching page {page}...")
         data = graphql_query(PRODUCTS_QUERY, {"page": page, "limit": PAGE_LIMIT})
         products = data.get("products", [])
@@ -146,6 +166,9 @@ def fetch_all_products():
                     for c in categories:
                         full_path = get_full_category_path(c)
                         unique_categories[full_path] = c["id"]
+      
+                    canonical = display.get("canonicalCategory")
+                    canonical_path = get_full_category_path(canonical) if canonical else ""
 
                     markets = display.get("markets", [])
                     market_names = [m["name"] for m in markets]
@@ -167,6 +190,7 @@ def fetch_all_products():
                         "Display Category IDs": "\n".join(category_ids),
                         "Add to Categories": "",
                         "Remove from Categories": "",
+                        "Canonical Category": canonical_path,
                         "Display Markets": ", ".join(market_names),
                         "Add to Markets": "",
                         "Remove from Markets": "",
@@ -174,6 +198,9 @@ def fetch_all_products():
 
         page += 1
         time.sleep(THROTTLE)
+        if page > MAX_PAGES:
+          print("✅ Reached max page limit for testing.")
+          break
 
     return all_rows, unique_categories
 
@@ -206,4 +233,4 @@ if __name__ == "__main__":
         df_markets.to_excel(writer, sheet_name="Markets", index=False)
         df_attributes.to_excel(writer, sheet_name="Mapped Attributes", index=False)
 
-    print("✅ Export complete: centra_product_export.xlsx")
+    print("Export complete: centra_product_export.xlsx")
