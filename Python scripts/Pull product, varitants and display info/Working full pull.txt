@@ -10,7 +10,7 @@ HEADERS = {
 }
 PAGE_LIMIT = 5
 THROTTLE = 1
-MAX_PAGES = 5
+MAX_PAGES = 2
 
 badge_ids = {}  # Global dictionary to collect badge name → ID
 
@@ -177,17 +177,19 @@ def fetch_all_products():
                         "Product ID": product_id,
                         "Product Name": product_name,
                         "Product Status": product_status,
+                        "Update Product Status":"",
                         "Variant ID": variant_id,
                         "Variant Name": variant_name,
                         "Variant Status": variant_status,
+                        "Update Variant Status":"",
                         "Badges": badge_str,
                         "Add Badge": "",
                         "Remove Badge": "",
                         "Display ID": display_id,
                         "Display Name": display_name,
                         "Display Status": display_status,
+                        "Update Display Status":"",
                         "Display Categories": "\n".join(category_paths),
-                        "Display Category IDs": "\n".join(category_ids),
                         "Add to Categories": "",
                         "Remove from Categories": "",
                         "Canonical Category": canonical_path,
@@ -199,7 +201,7 @@ def fetch_all_products():
         page += 1
         time.sleep(THROTTLE)
         if page > MAX_PAGES:
-          print("✅ Reached max page limit for testing.")
+          print(" Reached max page limit for testing.")
           break
 
     return all_rows, unique_categories
@@ -233,4 +235,4 @@ if __name__ == "__main__":
         df_markets.to_excel(writer, sheet_name="Markets", index=False)
         df_attributes.to_excel(writer, sheet_name="Mapped Attributes", index=False)
 
-    print("Export complete: centra_product_export.xlsx")
+    print(" Export complete: centra_product_export.xlsx")
