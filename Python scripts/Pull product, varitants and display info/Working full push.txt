@@ -128,22 +128,28 @@ for index, row in df_main.iterrows():
     prod_id = int(row["Product ID"])
     var_id = int(row["Variant ID"])
     disp_id = int(row["Display ID"])
+    # Read current statuses
     current_prod_status = str(row.get("Product Status", "")).strip()
     current_var_status = str(row.get("Variant Status", "")).strip()
     current_disp_status = str(row.get("Display Status", "")).strip()
 
-    # Prefer update columns if present and different
-    new_prod_status = str(row.get("Update Product Status", "")).strip()
-    if not new_prod_status or new_prod_status.upper() == current_prod_status.upper():
+    # Safely extract update statuses
+    raw_update_prod = row.get("Update Product Status", None)
+    raw_update_var = row.get("Updated Variant Status", None)
+    raw_update_disp = row.get("Update Display Status", None)
+
+    new_prod_status = str(raw_update_prod).strip().upper() if pd.notna(raw_update_prod) and str(raw_update_prod).strip() else None
+    new_var_status = str(raw_update_var).strip().upper() if pd.notna(raw_update_var) and str(raw_update_var).strip() else None
+    new_disp_status = str(raw_update_disp).strip().upper() if pd.notna(raw_update_disp) and str(raw_update_disp).strip() else None
+
+    # Only keep if different from current
+    if new_prod_status == current_prod_status.upper():
         new_prod_status = None
-
-    new_var_status = str(row.get("Update Variant Status", "")).strip()
-    if not new_var_status or new_var_status.upper() == current_var_status.upper():
+    if new_var_status == current_var_status.upper():
         new_var_status = None
-
-    new_disp_status = str(row.get("Update Display Status", "")).strip()
-    if not new_disp_status or new_disp_status.upper() == current_disp_status.upper():
+    if new_disp_status == current_disp_status.upper():
         new_disp_status = None
+
 
 
     add_badges, remove_badges = [], []

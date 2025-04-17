@@ -105,7 +105,6 @@ function main(workbook: ExcelScript.Workbook) {
     "Product Status - Not possible to import",
     "Variant Status - Not possible to import",
     "Variant Internal Name",
-    "Variant ID",
     "Size Chart",
     "Preorder",
     "Cost/Pcs",

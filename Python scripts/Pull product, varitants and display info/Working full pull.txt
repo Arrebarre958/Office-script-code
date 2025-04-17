@@ -10,6 +10,7 @@ HEADERS = {
 }
 PAGE_LIMIT = 5
 THROTTLE = 1
+LIMIT_PAGES = True
 MAX_PAGES = 2
 
 badge_ids = {}  # Global dictionary to collect badge name → ID
@@ -200,8 +201,8 @@ def fetch_all_products():
 
         page += 1
         time.sleep(THROTTLE)
-        if page > MAX_PAGES:
-          print(" Reached max page limit for testing.")
+        if LIMIT_PAGES and page > MAX_PAGES:
+          print("✅ Reached max page limit for testing.")
           break
 
     return all_rows, unique_categories
